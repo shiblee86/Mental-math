@@ -1,1390 +1,697 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🧠 MathHeads - Mental Math Game</title>
-    <style>
-        /* ----- global reset & base ----- */
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>🧮 Mental Math Games</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #0b0e1a;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            margin: 0;
-        }
+  :root {
+    --bg: #0b0e1a;
+    --panel: #141b2d;
+    --panel2: #1a2338;
+    --card: #0f1629;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f4ff;
+    --muted: #8892b0;
+    --blue: #6c8cff;
+    --purple: #a78bfa;
+    --pink: #ff6eb4;
+    --deep-pink: #e8197a;
+    --gold: #fcd34d;
+    --green: #34d399;
+    --red: #f87171;
+  }
 
-        .game-container {
-            background: linear-gradient(145deg, #141b2d, #1a2338);
-            border-radius: 40px;
-            padding: 32px 28px 38px;
-            max-width: 520px;
-            width: 100%;
-            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.2s;
-            position: relative;
-        }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--text);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 14px;
+  }
+  .wrap { max-width: 560px; width: 100%; }
 
-        /* ----- header ----- */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+  #confettiCanvas { position:fixed; inset:0; pointer-events:none; z-index:999; }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #f0f4ff;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .logo span {
-            background: linear-gradient(135deg, #6c8cff, #a78bfa);
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            letter-spacing: 0.3px;
-        }
+  h1.title { font-family:'Fredoka One',cursive; font-size:1.5rem; text-align:center; margin-bottom:4px;
+    background: linear-gradient(135deg, var(--gold), var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  p.tagline { text-align:center; color:var(--muted); font-size:.85rem; margin-bottom:18px; }
 
-        .mode-toggle {
-            display: flex;
-            background: #0f1629;
-            border-radius: 30px;
-            padding: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .mode-toggle button {
-            background: transparent;
-            border: none;
-            padding: 7px 18px;
-            border-radius: 26px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #8892b0;
-            cursor: pointer;
-            transition: all 0.25s;
-        }
-        .mode-toggle button.active {
-            background: linear-gradient(135deg, #4f6ef7, #7c5cfc);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(79, 110, 247, 0.35);
-        }
-        .mode-toggle button:first-child.active {
-            background: linear-gradient(135deg, #4f6ef7, #7c5cfc);
-        }
-        .mode-toggle button:nth-child(2).active {
-            background: linear-gradient(135deg, #f97316, #ef4444);
-            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
-        }
-        .mode-toggle button:last-child.active {
-            background: linear-gradient(135deg, #34d399, #10b981);
-            box-shadow: 0 4px 14px rgba(52, 211, 153, 0.35);
-        }
-        .mode-toggle button:hover:not(.active) {
-            color: #c8d0e6;
-        }
+  .screen { display:none; }
+  .screen.active { display:block; }
 
-        /* ----- stats bar ----- */
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 20px;
-            padding: 10px 16px;
-            margin-bottom: 22px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            flex-wrap: wrap;
-            gap: 6px 12px;
-        }
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #a8b3d0;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .stat-item .value {
-            color: #f0f4ff;
-            font-weight: 700;
-            font-size: 18px;
-            min-width: 28px;
-        }
-        .stat-item .label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.6;
-        }
-        .stat-item.timer .value {
-            color: #fcd34d;
-            min-width: 32px;
-        }
-        .stat-item.timer.warning .value {
-            color: #f87171;
-        }
-        .stat-item.streak .value {
-            color: #6ee7b7;
-        }
-        .stat-item.player-name .value {
-            color: #a78bfa;
-            font-size: 16px;
-            min-width: 60px;
-        }
+  /* ── MODE PICKER ── */
+  .mode-grid { display:grid; grid-template-columns:1fr; gap:14px; }
+  @media (min-width:520px) { .mode-grid { grid-template-columns:1fr 1fr 1fr; } }
+  .mode-card { background:var(--panel2); border:2px solid var(--border); border-radius:22px; padding:20px 16px; text-align:center; }
+  .mode-icon { font-size:2.2rem; }
+  .mode-name { font-family:'Fredoka One',cursive; font-size:1.15rem; color:var(--text); margin:8px 0 6px; }
+  .mode-desc { font-size:.78rem; color:var(--muted); min-height:3.4em; line-height:1.4; }
+  .mode-play-btn { border:none; border-radius:30px; padding:10px 24px; font-family:'Fredoka One',cursive; font-size:.9rem; cursor:pointer; margin-top:10px; color:#fff; }
+  .mode-play-btn.classic  { background:linear-gradient(135deg,#4f6ef7,#7c5cfc); }
+  .mode-play-btn.survival { background:linear-gradient(135deg,#f97316,#ef4444); }
+  .mode-play-btn.twoplayer{ background:linear-gradient(135deg,#34d399,#10b981); }
 
-        /* ----- problem display ----- */
-        .problem-area {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 30px;
-            padding: 30px 20px 26px;
-            margin-bottom: 22px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            transition: all 0.15s;
-            position: relative;
-        }
-        .problem-area.correct-flash {
-            border-color: #34d399;
-            box-shadow: 0 0 30px rgba(52, 211, 153, 0.15);
-        }
-        .problem-area.wrong-flash {
-            border-color: #f87171;
-            box-shadow: 0 0 30px rgba(248, 113, 113, 0.15);
-        }
-        .problem-area.timeout-flash {
-            border-color: #fbbf24;
-            box-shadow: 0 0 30px rgba(251, 191, 36, 0.15);
-        }
+  .best-scores { display:flex; justify-content:center; gap:18px; margin-top:18px; flex-wrap:wrap; }
+  .best-pill { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:6px 14px; font-size:.78rem; color:var(--muted); }
+  .best-pill strong { color:var(--gold); }
 
-        .problem-text {
-            font-size: 52px;
-            font-weight: 700;
-            color: #f0f4ff;
-            text-align: center;
-            letter-spacing: 1px;
-            line-height: 1.2;
-            word-break: break-word;
-            min-height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .problem-text .operator {
-            color: #6c8cff;
-            margin: 0 4px;
-        }
-        .problem-text .equals {
-            color: #8892b0;
-        }
-        .problem-text .qmark {
-            color: #fcd34d;
-            font-size: 48px;
-        }
+  /* ── SHARED GAME CHROME ── */
+  .top-nav { display:flex; gap:8px; margin-bottom:14px; }
+  .nav-btn { flex:1; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:9px; color:var(--text); font-weight:700; font-size:.85rem; cursor:pointer; }
+  .nav-btn:hover { border-color:var(--blue); }
 
-        .problem-progress {
-            text-align: center;
-            margin-top: 14px;
-            font-size: 13px;
-            color: #6b7a9a;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
+  .scorecard { display:flex; gap:10px; margin-bottom:14px; }
+  .score-box { flex:1; background:var(--card); border-radius:16px; padding:12px; text-align:center; border:1px solid var(--border); }
+  .score-lbl { font-size:.72rem; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.4px; }
+  .score-val { font-family:'Fredoka One',cursive; font-size:1.6rem; color:var(--text); }
+  .score-val.streak { color:var(--green); }
 
-        /* ----- input area ----- */
-        .input-area {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-            align-items: center;
-        }
-        .input-area input {
-            flex: 1;
-            padding: 16px 22px;
-            border-radius: 30px;
-            border: 2px solid rgba(255, 255, 255, 0.06);
-            background: #0f1629;
-            color: #f0f4ff;
-            font-size: 24px;
-            font-weight: 600;
-            outline: none;
-            transition: all 0.25s;
-            text-align: center;
-            min-width: 0;
-        }
-        .input-area input:focus {
-            border-color: #6c8cff;
-            box-shadow: 0 0 0 4px rgba(108, 140, 255, 0.15);
-        }
-        .input-area input::placeholder {
-            color: #3d4a66;
-            font-weight: 400;
-            font-size: 18px;
-        }
-        .input-area input:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
+  /* ── CLASSIC ── */
+  .timer-badge { display:inline-block; background:linear-gradient(135deg,#ff6b6b,var(--pink)); color:#fff; font-family:'Fredoka One',cursive; font-size:1.5rem; padding:9px 20px; border-radius:16px; }
+  .playfield { background:var(--panel); border-radius:20px; padding:18px; border:1px solid var(--border); margin-top:14px; }
+  .focus-row { text-align:right; margin-bottom:6px; font-size:.78rem; color:var(--muted); font-weight:800; }
+  .focus-switch { position:relative; display:inline-block; width:36px; height:20px; vertical-align:middle; margin-left:6px; }
+  .focus-switch input { opacity:0; width:0; height:0; }
+  .focus-slider { position:absolute; cursor:pointer; inset:0; background:var(--card); border:1px solid var(--border); border-radius:20px; transition:.2s; }
+  .focus-slider::before { content:''; position:absolute; width:12px; height:12px; left:3px; top:2px; background:var(--muted); border-radius:50%; transition:.2s; }
+  .focus-switch input:checked + .focus-slider { background:var(--deep-pink); }
+  .focus-switch input:checked + .focus-slider::before { transform:translateX(15px); background:#fff; }
 
-        .input-area button {
-            padding: 16px 32px;
-            border-radius: 30px;
-            border: none;
-            background: linear-gradient(135deg, #4f6ef7, #7c5cfc);
-            color: #fff;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s;
-            white-space: nowrap;
-            box-shadow: 0 4px 16px rgba(79, 110, 247, 0.25);
-        }
-        .input-area button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(79, 110, 247, 0.35);
-        }
-        .input-area button:active:not(:disabled) {
-            transform: translateY(1px);
-        }
-        .input-area button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-        }
+  .equation { display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Fredoka One',cursive; font-size:clamp(1.8rem,7vw,2.6rem); padding:20px 0; }
+  .equation.flash-ok  { animation: flashOk .35s; }
+  .equation.flash-bad { animation: flashBad .35s; }
+  @keyframes flashOk  { 0%{color:var(--green);} 100%{color:var(--text);} }
+  @keyframes flashBad { 0%{color:var(--red);} 100%{color:var(--text);} }
+  .eq-input { width:100px; font-size:1.5rem; font-family:'Fredoka One',cursive; text-align:center; background:var(--card); border:2px solid var(--border); border-radius:12px; color:var(--gold); padding:6px; outline:none; }
+  .eq-input:focus { border-color:var(--blue); }
 
-        /* ----- feedback message ----- */
-        .feedback {
-            text-align: center;
-            min-height: 32px;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            transition: all 0.2s;
-        }
-        .feedback.correct {
-            color: #34d399;
-        }
-        .feedback.wrong {
-            color: #f87171;
-        }
-        .feedback.info {
-            color: #6c8cff;
-        }
-        .feedback.timeout {
-            color: #fbbf24;
-        }
+  .btn-row { display:flex; gap:10px; margin-top:14px; }
+  .btn { flex:1; border:none; border-radius:20px; padding:12px; font-family:'Fredoka One',cursive; font-size:.9rem; cursor:pointer; }
+  .btn.leave  { background:var(--card); color:var(--text); border:1px solid var(--border); }
+  .btn.restart{ background:var(--card); color:var(--text); border:1px solid var(--border); }
+  .btn.primary{ background:linear-gradient(135deg,#4f6ef7,#7c5cfc); color:#fff; }
 
-        /* ----- timer bar (per question) ----- */
-        .timer-bar-wrap {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 6px;
-        }
-        .timer-bar {
-            height: 100%;
-            width: 100%;
-            border-radius: 10px;
-            background: linear-gradient(90deg, #fcd34d, #f59e0b);
-            transition: width 0.3s linear;
-        }
-        .timer-bar.warning {
-            background: linear-gradient(90deg, #f87171, #ef4444);
-        }
+  /* ── SURVIVAL ── */
+  .lives-row { display:flex; justify-content:center; gap:20px; margin-bottom:14px; }
+  .mascot-slot { position:relative; width:62px; height:62px; display:flex; align-items:center; justify-content:center; font-size:2.1rem; }
+  .mascot-slot .mascot { display:block; }
+  .mascot-slot.lost .mascot { opacity:.14; transform:scale(.7); filter:grayscale(1); }
 
-        /* ----- overlay base ----- */
-        .overlay {
-            display: none;
-            position: absolute;
-            inset: 0;
-            background: rgba(11, 14, 26, 0.92);
-            backdrop-filter: blur(6px);
-            border-radius: 40px;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 30px;
-            z-index: 20;
-            text-align: center;
-        }
-        .overlay.show {
-            display: flex;
-        }
-        .overlay h2 {
-            color: #f0f4ff;
-            font-size: 34px;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-        .overlay .sub {
-            color: #a8b3d0;
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        .overlay .big-score {
-            font-size: 72px;
-            font-weight: 800;
-            color: #fcd34d;
-            margin-bottom: 4px;
-        }
-        .overlay .label {
-            color: #6b7a9a;
-            font-size: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .overlay .stats-row {
-            display: flex;
-            gap: 30px;
-            margin: 16px 0 22px;
-            color: #a8b3d0;
-            font-size: 15px;
-        }
-        .overlay .stats-row span strong {
-            color: #f0f4ff;
-        }
-        .overlay .btn-primary {
-            padding: 14px 44px;
-            border-radius: 40px;
-            border: none;
-            background: linear-gradient(135deg, #4f6ef7, #7c5cfc);
-            color: #fff;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s;
-            box-shadow: 0 4px 20px rgba(79, 110, 247, 0.3);
-        }
-        .overlay .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 34px rgba(79, 110, 247, 0.4);
-        }
-        .overlay .btn-secondary {
-            background: linear-gradient(135deg, #f97316, #ef4444);
-            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
-        }
-        .overlay .btn-secondary:hover {
-            box-shadow: 0 8px 34px rgba(249, 115, 22, 0.4);
-        }
-        .overlay input {
-            background: #0f1629;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            padding: 14px 22px;
-            font-size: 18px;
-            color: #f0f4ff;
-            width: 100%;
-            max-width: 240px;
-            margin: 6px auto;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .overlay input:focus {
-            border-color: #6c8cff;
-        }
-        .overlay .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 100%;
-            max-width: 280px;
-            margin: 12px 0;
-        }
-        .overlay .input-group label {
-            color: #a8b3d0;
-            font-weight: 600;
-            font-size: 16px;
-            text-align: left;
-        }
-        .winner-name {
-            color: #fcd34d;
-            font-weight: 800;
-            font-size: 40px;
-            margin: 8px 0;
-        }
-        .tie-name {
-            color: #a78bfa;
-            font-weight: 700;
-            font-size: 32px;
-            margin: 8px 0;
-        }
+  /* Tension: mascots tremble once the clock is nearly out */
+  .mascot-slot.danger .mascot { animation: tremble .32s linear infinite; }
+  @keyframes tremble {
+    0%,100% { transform:translate(0,0) rotate(0); }
+    25%     { transform:translate(-2px,1px) rotate(-7deg); }
+    75%     { transform:translate(2px,-1px) rotate(7deg); }
+  }
 
-        /* ----- responsive ----- */
-        @media (max-width: 480px) {
-            .game-container {
-                padding: 20px 16px 28px;
-                border-radius: 28px;
-            }
-            .problem-text {
-                font-size: 38px;
-                min-height: 56px;
-            }
-            .problem-text .qmark {
-                font-size: 34px;
-            }
-            .input-area input {
-                font-size: 20px;
-                padding: 14px 16px;
-            }
-            .input-area button {
-                padding: 14px 22px;
-                font-size: 17px;
-            }
-            .stats {
-                padding: 8px 12px;
-                gap: 4px 8px;
-            }
-            .stat-item .value {
-                font-size: 15px;
-                min-width: 22px;
-            }
-            .header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            .logo {
-                font-size: 19px;
-                justify-content: center;
-            }
-            .mode-toggle {
-                justify-content: center;
-            }
-            .mode-toggle button {
-                padding: 6px 14px;
-                font-size: 13px;
-            }
-            .overlay h2 {
-                font-size: 28px;
-            }
-            .overlay .big-score {
-                font-size: 52px;
-            }
-            .overlay .stats-row {
-                flex-direction: column;
-                gap: 6px;
-                align-items: center;
-            }
-            .overlay input {
-                max-width: 100%;
-            }
-        }
+  /* ── THE EAT SEQUENCE (plays on the LIVE element, not a rebuilt one) ── */
+  .mascot-slot.eating .mascot { animation: mascotEaten 1.15s cubic-bezier(.4,0,.6,1) forwards; }
+  @keyframes mascotEaten {
+    0%   { transform:scale(1) rotate(0); opacity:1; }
+    10%  { transform:scale(1.15) rotate(-14deg); }   /* panic! */
+    20%  { transform:scale(1.15) rotate(14deg); }
+    30%  { transform:scale(1.15) rotate(-14deg); }
+    40%  { transform:scale(1.15) rotate(14deg); }
+    55%  { transform:scale(.8) rotate(10deg) translateY(3px); opacity:.85; }  /* getting pulled in */
+    75%  { transform:scale(.35) rotate(28deg) translateY(6px); opacity:.4; }
+    100% { transform:scale(0) rotate(50deg) translateY(8px); opacity:0; }
+  }
 
-        @media (max-width: 380px) {
-            .problem-text {
-                font-size: 30px;
-            }
-            .input-area input {
-                font-size: 17px;
-                padding: 12px 12px;
-            }
-            .input-area button {
-                padding: 12px 16px;
-                font-size: 15px;
-            }
-        }
+  .mascot-slot .monster { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0); opacity:0; font-size:2.7rem; pointer-events:none; }
+  .mascot-slot.eating .monster { animation: monsterAttack 1.15s ease-out forwards; }
+  @keyframes monsterAttack {
+    0%   { opacity:0; transform:translate(-50%,-190%) scale(.35) rotate(-30deg); }
+    22%  { opacity:1; transform:translate(-50%,-50%) scale(1.2) rotate(0deg); }   /* swoops in */
+    36%  { transform:translate(-50%,-50%) scale(.88) rotate(-8deg); }             /* CHOMP */
+    50%  { transform:translate(-50%,-50%) scale(1.2) rotate(8deg); }              /* open */
+    64%  { transform:translate(-50%,-50%) scale(.88) rotate(-6deg); }             /* CHOMP */
+    78%  { transform:translate(-50%,-50%) scale(1.1) rotate(4deg); }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(1.7) rotate(14deg); }
+  }
 
-        /* hidden test output */
-        #test-output {
-            display: none !important;
-        }
-    </style>
+  .mascot-slot .puff { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:1.9rem; opacity:0; pointer-events:none; }
+  .mascot-slot.eating .puff { animation: puffBurst .55s ease-out .72s forwards; }
+  @keyframes puffBurst {
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(.3); }
+    45%  { opacity:1; transform:translate(-50%,-50%) scale(1.45); }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(2); }
+  }
+
+  .survival-shake { animation: shake .4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+
+  .countdown-wrap { height:10px; background:var(--card); border-radius:10px; overflow:hidden; margin:10px 0 4px; border:1px solid var(--border); }
+  .countdown-bar { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--gold),#f59e0b); transition:width .1s linear, background .2s; }
+  .countdown-bar.warning { background:linear-gradient(90deg,var(--red),#ef4444); }
+  .countdown-num { text-align:center; font-size:.78rem; color:var(--muted); font-weight:800; }
+
+  /* ── TWO PLAYER ── */
+  .setup-row { display:flex; flex-direction:column; gap:10px; margin:14px 0; }
+  .setup-row label { font-size:.85rem; color:var(--muted); font-weight:800; }
+  .setup-row input { background:var(--card); border:2px solid var(--border); border-radius:16px; padding:12px 16px; color:var(--text); font-size:1rem; outline:none; }
+  .setup-row input:focus { border-color:var(--blue); }
+  .turn-banner { text-align:center; background:var(--panel2); border:2px solid var(--border); border-radius:20px; padding:14px; margin-bottom:14px; }
+  .turn-banner .name { font-family:'Fredoka One',cursive; font-size:1.3rem; color:var(--purple); }
+
+  /* ── RESULT ── */
+  .result-panel { text-align:center; padding:20px 10px; }
+  .result-emoji { font-size:3rem; }
+  .result-title { font-family:'Fredoka One',cursive; font-size:1.4rem; color:var(--pink); margin:8px 0; }
+  .result-bignum { font-family:'Fredoka One',cursive; font-size:3rem; color:var(--gold); }
+  .result-sub { color:var(--muted); font-size:.85rem; margin-top:2px; }
+  .result-best { font-size:.85rem; color:var(--muted); margin-top:8px; }
+  .result-best.new { color:var(--gold); font-weight:800; }
+  .winner-line { font-family:'Fredoka One',cursive; font-size:1.6rem; color:var(--gold); margin:10px 0; }
+</style>
 </head>
 <body>
+<canvas id="confettiCanvas"></canvas>
+<div class="wrap">
+  <h1 class="title">🧮 Mental Math Games</h1>
+  <p class="tagline">Addition to 20 &middot; Subtraction to 25 &middot; a fresh set every round</p>
 
-    <div class="game-container relative" id="app">
-
-        <!-- ----- SETUP OVERLAY (two-player) ----- -->
-        <div class="overlay" id="setupOverlay">
-            <h2>👥 Two-Player</h2>
-            <div class="sub">Enter names and start</div>
-            <div class="input-group">
-                <label>Player 1</label>
-                <input type="text" id="player1Name" placeholder="e.g. Alice" value="Player 1" />
-            </div>
-            <div class="input-group">
-                <label>Player 2</label>
-                <input type="text" id="player2Name" placeholder="e.g. Bob" value="Player 2" />
-            </div>
-            <button class="btn-primary" id="startTwoPlayerBtn" style="margin-top:16px;">🚀 Start Game</button>
-        </div>
-
-        <!-- ----- TURN TRANSITION OVERLAY ----- -->
-        <div class="overlay" id="turnOverlay">
-            <h2 id="turnTitle">Player 1</h2>
-            <div class="sub" id="turnSub">Your turn!</div>
-            <div class="big-score" id="turnScore">0</div>
-            <div class="label" id="turnScoreLabel">Correct answers</div>
-            <button class="btn-primary" id="turnContinueBtn">▶ Continue</button>
-        </div>
-
-        <!-- ----- FINAL RESULTS OVERLAY ----- -->
-        <div class="overlay" id="resultOverlay">
-            <h2>🏆 Game Over</h2>
-            <div id="winnerDisplay" class="winner-name">Winner</div>
-            <div class="stats-row" id="resultStats">
-                <span>Player 1: <strong id="resultP1">0</strong></span>
-                <span>Player 2: <strong id="resultP2">0</strong></span>
-            </div>
-            <button class="btn-primary" id="resultRestartBtn">🔄 Play Again</button>
-        </div>
-
-        <!-- ----- GAME OVER OVERLAY (for single-player modes) ----- -->
-        <div class="overlay" id="gameOverOverlay">
-            <h2>🏁 Game Over</h2>
-            <div class="sub" id="goSub">Nice effort!</div>
-            <div class="big-score" id="goScore">0</div>
-            <div class="label">Final Score</div>
-            <div class="stats-row">
-                <span>✅ Correct: <strong id="goCorrect">0</strong></span>
-                <span>❌ Wrong: <strong id="goWrong">0</strong></span>
-                <span>🔥 Streak: <strong id="goStreak">0</strong></span>
-            </div>
-            <button class="btn-primary" id="goRestartBtn">▶ Play Again</button>
-        </div>
-
-        <!-- header -->
-        <div class="header">
-            <div class="logo">
-                🧠 MathHeads
-                <span>v2</span>
-            </div>
-            <div class="mode-toggle" id="modeToggle">
-                <button class="active" data-mode="classic">Classic</button>
-                <button data-mode="survival">Survival</button>
-                <button data-mode="two-player">2-Player</button>
-            </div>
-        </div>
-
-        <!-- stats -->
-        <div class="stats">
-            <div class="stat-item">
-                <span class="label">Score</span>
-                <span class="value" id="scoreDisplay">0</span>
-            </div>
-            <div class="stat-item streak">
-                <span class="label">Streak</span>
-                <span class="value" id="streakDisplay">0</span>
-            </div>
-            <div class="stat-item timer" id="timerStat">
-                <span class="label">⏱</span>
-                <span class="value" id="timerDisplay">10</span>
-                <span class="label">s</span>
-            </div>
-            <div class="stat-item player-name" id="playerNameStat">
-                <span class="label">Player</span>
-                <span class="value" id="playerNameDisplay">—</span>
-            </div>
-            <div class="stat-item">
-                <span class="label" id="progressLabel">Q</span>
-                <span class="value" id="progressDisplay">0/10</span>
-            </div>
-        </div>
-
-        <!-- problem -->
-        <div class="problem-area" id="problemArea">
-            <div class="problem-text" id="problemText">
-                <span>8</span>
-                <span class="operator">+</span>
-                <span>7</span>
-                <span class="equals">=</span>
-                <span class="qmark">?</span>
-            </div>
-            <div class="problem-progress" id="problemProgress">Question 1 of 10</div>
-        </div>
-
-        <!-- feedback -->
-        <div class="feedback" id="feedback">&nbsp;</div>
-
-        <!-- input -->
-        <div class="input-area">
-            <input type="number" id="answerInput" placeholder="Enter answer…" autofocus />
-            <button id="submitBtn">↵</button>
-        </div>
-
-        <!-- timer bar (per question) -->
-        <div class="timer-bar-wrap">
-            <div class="timer-bar" id="timerBar" style="width:100%"></div>
-        </div>
-
-        <!-- hidden test output -->
-        <div id="test-output" style="display:none !important;"></div>
+  <!-- MODE PICKER -->
+  <div id="pickerScreen" class="screen active">
+    <div class="mode-grid">
+      <div class="mode-card">
+        <div class="mode-icon">⏰</div>
+        <div class="mode-name">Classic</div>
+        <div class="mode-desc">10 questions, 10 seconds each — answer as fast as you can before the clock runs out on each one!</div>
+        <button class="mode-play-btn classic" onclick="startClassic()">PLAY</button>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">🐻</div>
+        <div class="mode-name">Survival</div>
+        <div class="mode-desc">Your mascots are counting on you! Answer within 10 seconds or one gets gobbled up. 3 lives.</div>
+        <button class="mode-play-btn survival" onclick="startSurvival()">PLAY</button>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">👥</div>
+        <div class="mode-name">2-Player</div>
+        <div class="mode-desc">Take turns! Each player answers 10 questions, then compare scores to see who wins.</div>
+        <button class="mode-play-btn twoplayer" onclick="showTwoPlayerSetup()">PLAY</button>
+      </div>
     </div>
-
-    <script>
-        // ============================================================
-        //  MATH HEADS — Full Game Implementation (Single + Two‑Player)
-        //  Tests run silently in the background.
-        // ============================================================
-
-        (function() {
-            'use strict';
-
-            // ----- DOM refs -----
-            const $ = id => document.getElementById(id);
-            const el = {
-                app: $('app'),
-                modeToggle: $('modeToggle'),
-                classicBtn: $('modeToggle').querySelector('[data-mode="classic"]'),
-                survivalBtn: $('modeToggle').querySelector('[data-mode="survival"]'),
-                twoPlayerBtn: $('modeToggle').querySelector('[data-mode="two-player"]'),
-                scoreDisplay: $('scoreDisplay'),
-                streakDisplay: $('streakDisplay'),
-                timerDisplay: $('timerDisplay'),
-                timerStat: $('timerStat'),
-                timerBar: $('timerBar'),
-                progressDisplay: $('progressDisplay'),
-                progressLabel: $('progressLabel'),
-                problemText: $('problemText'),
-                problemArea: $('problemArea'),
-                problemProgress: $('problemProgress'),
-                feedback: $('feedback'),
-                answerInput: $('answerInput'),
-                submitBtn: $('submitBtn'),
-                playerNameDisplay: $('playerNameDisplay'),
-                playerNameStat: $('playerNameStat'),
-
-                // overlays
-                setupOverlay: $('setupOverlay'),
-                turnOverlay: $('turnOverlay'),
-                resultOverlay: $('resultOverlay'),
-                gameOverOverlay: $('gameOverOverlay'),
-
-                // setup
-                player1Name: $('player1Name'),
-                player2Name: $('player2Name'),
-                startTwoPlayerBtn: $('startTwoPlayerBtn'),
-
-                // turn overlay
-                turnTitle: $('turnTitle'),
-                turnSub: $('turnSub'),
-                turnScore: $('turnScore'),
-                turnScoreLabel: $('turnScoreLabel'),
-                turnContinueBtn: $('turnContinueBtn'),
-
-                // result overlay
-                winnerDisplay: $('winnerDisplay'),
-                resultP1: $('resultP1'),
-                resultP2: $('resultP2'),
-                resultRestartBtn: $('resultRestartBtn'),
-
-                // game over overlay
-                goSub: $('goSub'),
-                goScore: $('goScore'),
-                goCorrect: $('goCorrect'),
-                goWrong: $('goWrong'),
-                goStreak: $('goStreak'),
-                goRestartBtn: $('goRestartBtn'),
-
-                testOutput: $('test-output'),
-            };
-
-            // ============================================================
-            //  PROBLEM GENERATOR
-            // ============================================================
-            const ProblemGenerator = {
-                generateAddition() {
-                    let a, b, sum;
-                    do {
-                        a = Math.floor(Math.random() * 21);
-                        b = Math.floor(Math.random() * 21);
-                        sum = a + b;
-                    } while (sum > 20 || (a === 0 && b === 0));
-                    return { a, b, operator: '+', answer: sum, isAddition: true };
-                },
-                generateSubtraction() {
-                    let a, b;
-                    do {
-                        a = Math.floor(Math.random() * 26);
-                        b = Math.floor(Math.random() * 26);
-                    } while (b > a || (a === 0 && b === 0) || a === b);
-                    return { a, b, operator: '−', answer: a - b, isAddition: false };
-                },
-                generateRandom() {
-                    return Math.random() < 0.5 ? this.generateAddition() : this.generateSubtraction();
-                },
-                generateSequence(count) {
-                    const seq = [];
-                    for (let i = 0; i < count; i++) seq.push(this.generateRandom());
-                    return seq;
-                }
-            };
-
-            // ============================================================
-            //  GAME ENGINE  (single player, per‑question 10s timer)
-            // ============================================================
-            class GameEngine {
-                constructor() {
-                    this.mode = 'classic';
-                    this.score = 0;
-                    this.streak = 0;
-                    this.maxStreak = 0;
-                    this.correctCount = 0;
-                    this.wrongCount = 0;
-                    this.totalQuestions = 0;
-                    this.currentProblem = null;
-                    this.problems = [];
-                    this.currentIndex = 0;
-                    this.isRunning = false;
-                    this.isGameOver = false;
-                    this.maxQuestionTimer = 10;
-                    this.questionTimer = this.maxQuestionTimer;
-                    this.timerInterval = null;
-                    this.totalClassicQuestions = 10;
-                    this.onUpdate = null;
-                    this.onGameOver = null;
-                    this.onFeedback = null;
-                }
-
-                start(mode) {
-                    if (this.isRunning) return;
-                    this.mode = mode;
-                    this.score = 0;
-                    this.streak = 0;
-                    this.maxStreak = 0;
-                    this.correctCount = 0;
-                    this.wrongCount = 0;
-                    this.totalQuestions = 0;
-                    this.currentIndex = 0;
-                    this.isGameOver = false;
-                    this.isRunning = true;
-                    this.questionTimer = this.maxQuestionTimer;
-
-                    if (mode === 'classic' || mode === 'two-player') {
-                        this.problems = ProblemGenerator.generateSequence(this.totalClassicQuestions);
-                    } else { // survival
-                        this.problems = ProblemGenerator.generateSequence(10);
-                    }
-                    this.currentProblem = this.problems[0] || null;
-                    this._startTimer();
-                    this._notifyUpdate();
-                    return this.currentProblem;
-                }
-
-                submitAnswer(userAnswer) {
-                    if (!this.isRunning || this.isGameOver || !this.currentProblem) {
-                        return { success: false, gameOver: true };
-                    }
-                    const isCorrect = Number(userAnswer) === this.currentProblem.answer;
-                    let gameOver = false;
-                    let feedbackMsg = '';
-                    if (isCorrect) {
-                        this.score += 1;
-                        this.streak += 1;
-                        if (this.streak > this.maxStreak) this.maxStreak = this.streak;
-                        this.correctCount += 1;
-                        feedbackMsg = 'Correct!';
-                    } else {
-                        this.streak = 0;
-                        this.wrongCount += 1;
-                        feedbackMsg = `Wrong! Answer was ${this.currentProblem.answer}`;
-                        if (this.mode === 'survival') gameOver = true;
-                    }
-                    this.totalQuestions += 1;
-                    this._stopTimer();
-                    if (gameOver) {
-                        this._endGame();
-                        return { success: isCorrect, gameOver: true, correct: isCorrect, message: feedbackMsg };
-                    }
-                    const moved = this._advanceProblem();
-                    if (!moved) {
-                        this._endGame();
-                        return { success: isCorrect, gameOver: true, correct: isCorrect, message: feedbackMsg };
-                    }
-                    this.questionTimer = this.maxQuestionTimer;
-                    this._startTimer();
-                    this._notifyUpdate();
-                    return { success: isCorrect, gameOver: false, correct: isCorrect, message: feedbackMsg };
-                }
-
-                _onTimerExpired() {
-                    if (!this.isRunning || this.isGameOver) return;
-                    this.wrongCount += 1;
-                    this.streak = 0;
-                    this.totalQuestions += 1;
-                    const feedbackMsg = `⏰ Time's up! Answer was ${this.currentProblem.answer}`;
-                    if (this.mode === 'survival') {
-                        this._stopTimer();
-                        this._endGame();
-                        this._notifyUpdate();
-                        return;
-                    } else {
-                        this._stopTimer();
-                        const moved = this._advanceProblem();
-                        if (!moved) this._endGame();
-                        else {
-                            this.questionTimer = this.maxQuestionTimer;
-                            this._startTimer();
-                        }
-                        this._notifyUpdate();
-                        if (this.onFeedback) this.onFeedback(feedbackMsg, 'timeout');
-                        if (this.onUpdate) this.onUpdate({ flash: 'timeout-flash' });
-                    }
-                }
-
-                _advanceProblem() {
-                    this.currentIndex += 1;
-                    if (this.mode === 'classic' || this.mode === 'two-player') {
-                        if (this.currentIndex >= this.problems.length) return false;
-                        this.currentProblem = this.problems[this.currentIndex] || null;
-                        return true;
-                    } else {
-                        if (this.currentIndex >= this.problems.length) {
-                            this.problems = this.problems.concat(ProblemGenerator.generateSequence(8));
-                        }
-                        this.currentProblem = this.problems[this.currentIndex] || null;
-                        return true;
-                    }
-                }
-
-                _startTimer() {
-                    this._stopTimer();
-                    this.timerInterval = setInterval(() => {
-                        if (!this.isRunning || this.isGameOver) { this._stopTimer(); return; }
-                        this.questionTimer -= 0.5;
-                        if (this.questionTimer <= 0) {
-                            this.questionTimer = 0;
-                            this._onTimerExpired();
-                        }
-                        this._notifyUpdate();
-                    }, 500);
-                }
-
-                _stopTimer() {
-                    if (this.timerInterval) { clearInterval(this.timerInterval);
-                        this.timerInterval = null; }
-                }
-
-                _endGame() {
-                    if (this.isGameOver) return;
-                    this.isGameOver = true;
-                    this.isRunning = false;
-                    this._stopTimer();
-                    if (this.onGameOver) {
-                        this.onGameOver({
-                            score: this.score,
-                            correct: this.correctCount,
-                            wrong: this.wrongCount,
-                            streak: this.maxStreak,
-                            mode: this.mode,
-                        });
-                    }
-                    this._notifyUpdate();
-                }
-
-                _notifyUpdate() {
-                    if (this.onUpdate) this.onUpdate(this.getState());
-                }
-
-                getState() {
-                    return {
-                        mode: this.mode,
-                        score: this.score,
-                        streak: this.streak,
-                        maxStreak: this.maxStreak,
-                        correctCount: this.correctCount,
-                        wrongCount: this.wrongCount,
-                        totalQuestions: this.totalQuestions,
-                        currentProblem: this.currentProblem,
-                        currentIndex: this.currentIndex,
-                        totalProblems: this.problems.length,
-                        isRunning: this.isRunning,
-                        isGameOver: this.isGameOver,
-                        questionTimer: this.questionTimer,
-                        maxQuestionTimer: this.maxQuestionTimer,
-                        progress: this.mode === 'classic' || this.mode === 'two-player' ?
-                            `${this.currentIndex}/${this.problems.length}` :
-                            `${this.totalQuestions}`,
-                    };
-                }
-
-                reset() {
-                    this._stopTimer();
-                    this.isRunning = false;
-                    this.isGameOver = false;
-                    this.problems = [];
-                    this.currentProblem = null;
-                    this.currentIndex = 0;
-                    this.questionTimer = this.maxQuestionTimer;
-                    this.score = 0;
-                    this.streak = 0;
-                    this.maxStreak = 0;
-                    this.correctCount = 0;
-                    this.wrongCount = 0;
-                    this.totalQuestions = 0;
-                    this._notifyUpdate();
-                }
-            }
-
-            // ============================================================
-            //  UI MANAGER  (handles all modes including two-player)
-            // ============================================================
-            class UIManager {
-                constructor(engine) {
-                    this.engine = engine;
-                    this.mode = 'classic';
-                    this.twoPlayerData = null; // { p1Name, p2Name, p1Score, p2Score, currentPlayer }
-                    this._bindEvents();
-                }
-
-                _bindEvents() {
-                    // mode toggle
-                    el.modeToggle.addEventListener('click', (e) => {
-                        const btn = e.target.closest('button');
-                        if (!btn || !btn.dataset.mode) return;
-                        if (btn.dataset.mode === this.mode) return;
-                        this._switchMode(btn.dataset.mode);
-                    });
-
-                    // submit
-                    el.submitBtn.addEventListener('click', () => this._handleSubmit());
-                    el.answerInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') this._handleSubmit();
-                    });
-
-                    // single-player restart
-                    el.goRestartBtn.addEventListener('click', () => {
-                        this._hideAllOverlays();
-                        this.engine.reset();
-                        this._startGame(this.mode);
-                    });
-
-                    // two-player setup
-                    el.startTwoPlayerBtn.addEventListener('click', () => {
-                        const p1 = el.player1Name.value.trim() || 'Player 1';
-                        const p2 = el.player2Name.value.trim() || 'Player 2';
-                        this._initTwoPlayer(p1, p2);
-                    });
-
-                    // turn continue
-                    el.turnContinueBtn.addEventListener('click', () => {
-                        this._nextPlayerTurn();
-                    });
-
-                    // result restart
-                    el.resultRestartBtn.addEventListener('click', () => {
-                        this._hideAllOverlays();
-                        this.engine.reset();
-                        // restart two-player from setup
-                        this._showSetup();
-                    });
-
-                    // keyboard: Enter on setup inputs triggers start
-                    [el.player1Name, el.player2Name].forEach(inp => {
-                        inp.addEventListener('keydown', (e) => {
-                            if (e.key === 'Enter') el.startTwoPlayerBtn.click();
-                        });
-                    });
-
-                    el.answerInput.focus();
-                }
-
-                _switchMode(mode) {
-                    if (this.engine.isRunning && !this.engine.isGameOver) {
-                        if (!confirm('Switch mode? Your current game will be lost.')) return;
-                    }
-                    this.mode = mode;
-                    // update toggle UI
-                    el.modeToggle.querySelectorAll('button').forEach(b => {
-                        b.classList.toggle('active', b.dataset.mode === mode);
-                    });
-                    this.engine.reset();
-                    this._hideAllOverlays();
-
-                    if (mode === 'two-player') {
-                        this._showSetup();
-                        // disable game input until setup
-                        el.answerInput.disabled = true;
-                        el.submitBtn.disabled = true;
-                    } else {
-                        el.answerInput.disabled = false;
-                        el.submitBtn.disabled = false;
-                        this._startGame(mode);
-                    }
-                }
-
-                _showSetup() {
-                    el.setupOverlay.classList.add('show');
-                    // hide any other overlays
-                    el.turnOverlay.classList.remove('show');
-                    el.resultOverlay.classList.remove('show');
-                    el.gameOverOverlay.classList.remove('show');
-                    // pre-fill names
-                    if (!el.player1Name.value) el.player1Name.value = 'Player 1';
-                    if (!el.player2Name.value) el.player2Name.value = 'Player 2';
-                    el.player1Name.focus();
-                }
-
-                _hideAllOverlays() {
-                    ['setupOverlay', 'turnOverlay', 'resultOverlay', 'gameOverOverlay'].forEach(id => {
-                        el[id].classList.remove('show');
-                    });
-                }
-
-                _initTwoPlayer(p1Name, p2Name) {
-                    this.twoPlayerData = {
-                        p1Name: p1Name,
-                        p2Name: p2Name,
-                        p1Score: 0,
-                        p2Score: 0,
-                        currentPlayer: 1, // 1 or 2
-                        gameOver: false,
-                    };
-                    el.setupOverlay.classList.remove('show');
-                    // Start with Player 1
-                    this._startPlayerTurn(1);
-                }
-
-                _startPlayerTurn(playerNum) {
-                    const data = this.twoPlayerData;
-                    const name = playerNum === 1 ? data.p1Name : data.p2Name;
-                    // Reset engine for this player
-                    this.engine.reset();
-                    this.engine.mode = 'two-player'; // force classic-style
-                    this.engine.totalClassicQuestions = 10;
-                    this.engine.onUpdate = (state) => this._render(state);
-                    this.engine.onGameOver = (result) => {
-                        // store score for this player
-                        if (playerNum === 1) data.p1Score = result.score;
-                        else data.p2Score = result.score;
-                        // show turn overlay with score
-                        this._showTurnOverlay(playerNum, result.score);
-                    };
-                    this.engine.onFeedback = (msg, type) => this._showFeedback(msg, type);
-
-                    // show player name in stats
-                    el.playerNameDisplay.textContent = name;
-                    el.playerNameStat.style.display = 'flex';
-
-                    // start engine
-                    this.engine.start('two-player');
-                    // focus input
-                    el.answerInput.disabled = false;
-                    el.submitBtn.disabled = false;
-                    el.answerInput.focus();
-                }
-
-                _showTurnOverlay(playerNum, score) {
-                    const data = this.twoPlayerData;
-                    const name = playerNum === 1 ? data.p1Name : data.p2Name;
-                    el.turnTitle.textContent = `👤 ${name}`;
-                    el.turnSub.textContent = `Score: ${score} correct out of 10`;
-                    el.turnScore.textContent = score;
-                    el.turnScoreLabel.textContent = 'Correct answers';
-                    el.turnContinueBtn.textContent = playerNum === 1 ? '▶ Player 2\'s Turn' : '🏆 Show Results';
-                    el.turnOverlay.classList.add('show');
-                    // disable input
-                    el.answerInput.disabled = true;
-                    el.submitBtn.disabled = true;
-                }
-
-                _nextPlayerTurn() {
-                    const data = this.twoPlayerData;
-                    if (data.currentPlayer === 1) {
-                        // move to player 2
-                        data.currentPlayer = 2;
-                        el.turnOverlay.classList.remove('show');
-                        this._startPlayerTurn(2);
-                    } else {
-                        // both done, show results
-                        el.turnOverlay.classList.remove('show');
-                        this._showFinalResults();
-                    }
-                }
-
-                _showFinalResults() {
-                    const data = this.twoPlayerData;
-                    const p1Score = data.p1Score;
-                    const p2Score = data.p2Score;
-                    el.resultP1.textContent = `${data.p1Name}: ${p1Score}`;
-                    el.resultP2.textContent = `${data.p2Name}: ${p2Score}`;
-                    let winnerMsg = '';
-                    if (p1Score > p2Score) {
-                        winnerMsg = `🏆 ${data.p1Name} wins!`;
-                    } else if (p2Score > p1Score) {
-                        winnerMsg = `🏆 ${data.p2Name} wins!`;
-                    } else {
-                        winnerMsg = `🤝 It's a tie!`;
-                    }
-                    el.winnerDisplay.textContent = winnerMsg;
-                    el.resultOverlay.classList.add('show');
-                    el.answerInput.disabled = true;
-                    el.submitBtn.disabled = true;
-                    // hide player name
-                    el.playerNameStat.style.display = 'none';
-                }
-
-                // ----- Single-player game start -----
-                _startGame(mode) {
-                    el.playerNameStat.style.display = 'none';
-                    this.engine.onUpdate = (state) => this._render(state);
-                    this.engine.onGameOver = (data) => this._showGameOver(data);
-                    this.engine.onFeedback = (msg, type) => this._showFeedback(msg, type);
-                    this.engine.start(mode);
-                    el.answerInput.disabled = false;
-                    el.submitBtn.disabled = false;
-                    el.answerInput.value = '';
-                    el.answerInput.focus();
-                }
-
-                // ----- Shared submit handler -----
-                _handleSubmit() {
-                    if (this.engine.isGameOver || !this.engine.isRunning) return;
-                    const val = el.answerInput.value.trim();
-                    if (val === '') return;
-                    const num = Number(val);
-                    if (isNaN(num)) {
-                        this._showFeedback('Please enter a number.', 'info');
-                        return;
-                    }
-                    const result = this.engine.submitAnswer(num);
-                    el.answerInput.value = '';
-                    el.answerInput.focus();
-                    if (result.gameOver) return;
-                    if (result.correct) {
-                        this._showFeedback('✅ Correct!', 'correct');
-                        this._flashProblem('correct-flash');
-                    } else {
-                        this._showFeedback(result.message || '❌ Wrong!', 'wrong');
-                        this._flashProblem('wrong-flash');
-                    }
-                    const state = this.engine.getState();
-                    this._render(state);
-                    if (state.currentProblem) this._renderProblem(state.currentProblem);
-                }
-
-                // ----- Rendering -----
-                _render(state) {
-                    el.scoreDisplay.textContent = state.score;
-                    el.streakDisplay.textContent = state.streak;
-                    const timerVal = Math.ceil(state.questionTimer);
-                    el.timerDisplay.textContent = timerVal;
-                    const pct = (state.questionTimer / state.maxQuestionTimer) * 100;
-                    el.timerBar.style.width = pct + '%';
-                    el.timerBar.classList.toggle('warning', pct < 25);
-                    el.timerStat.classList.toggle('warning', pct < 25);
-
-                    if (state.mode === 'classic' || state.mode === 'two-player') {
-                        el.progressLabel.textContent = 'Q';
-                        el.progressDisplay.textContent = `${state.currentIndex}/${state.totalProblems}`;
-                        el.problemProgress.textContent = `Question ${Math.min(state.currentIndex + 1, state.totalProblems)} of ${state.totalProblems}`;
-                    } else {
-                        el.progressLabel.textContent = 'Answered';
-                        el.progressDisplay.textContent = `${state.totalQuestions}`;
-                        el.problemProgress.textContent = `Survival • ${state.totalQuestions} answered`;
-                    }
-                    if (state.currentProblem) this._renderProblem(state.currentProblem);
-                    el.answerInput.disabled = state.isGameOver || !state.isRunning;
-                    if (state.flash) {
-                        this._flashProblem(state.flash);
-                        state.flash = null;
-                    }
-                }
-
-                _renderProblem(problem) {
-                    if (!problem) return;
-                    const { a, b, operator } = problem;
-                    el.problemText.innerHTML = `
-                        <span>${a}</span>
-                        <span class="operator">${operator}</span>
-                        <span>${b}</span>
-                        <span class="equals">=</span>
-                        <span class="qmark">?</span>
-                    `;
-                }
-
-                _showFeedback(msg, type) {
-                    el.feedback.textContent = msg;
-                    el.feedback.className = 'feedback ' + (type || '');
-                }
-
-                _clearFeedback() {
-                    el.feedback.textContent = '\u00A0';
-                    el.feedback.className = 'feedback';
-                }
-
-                _flashProblem(className) {
-                    el.problemArea.classList.add(className);
-                    setTimeout(() => el.problemArea.classList.remove(className), 400);
-                }
-
-                _showGameOver(data) {
-                    el.goScore.textContent = data.score;
-                    el.goCorrect.textContent = data.correct;
-                    el.goWrong.textContent = data.wrong;
-                    el.goStreak.textContent = data.streak;
-                    el.goSub.textContent = data.mode === 'classic' ? '🏆 Classic complete!' : '⏰ Time\'s up!';
-                    el.gameOverOverlay.classList.add('show');
-                    el.answerInput.disabled = true;
-                }
-
-                // hide all overlays
-                _hideAllOverlays() {
-                    ['setupOverlay', 'turnOverlay', 'resultOverlay', 'gameOverOverlay'].forEach(id => {
-                        el[id].classList.remove('show');
-                    });
-                }
-
-                // expose reset for UI
-                resetUI() {
-                    this._hideAllOverlays();
-                    this._clearFeedback();
-                    el.answerInput.value = '';
-                    el.answerInput.disabled = false;
-                    el.answerInput.focus();
-                    el.timerBar.style.width = '100%';
-                    el.timerBar.classList.remove('warning');
-                    el.timerStat.classList.remove('warning');
-                    el.playerNameStat.style.display = 'none';
-                }
-            }
-
-            // ============================================================
-            //  TESTS  (silent)
-            // ============================================================
-            class TestRunner {
-                constructor() { this.results = [];
-                    this.passes = 0;
-                    this.fails = 0; }
-                assert(c, m) { c ? (this.passes++, this.results.push({ pass: true, message: m })) : (this.fails++, this
-                        .results.push({ pass: false, message: m })); }
-                assertEquals(a, e, m) { const p = a === e;
-                    p ? (this.passes++, this.results.push({ pass: true, message: `${m} (got ${a})` })) : (this.fails++,
-                        this.results.push({ pass: false, message: `${m} — expected ${e}, got ${a}` })); }
-                assertFalse(c, m) { this.assert(!c, m); }
-                assertTrue(c, m) { this.assert(c, m); }
-                assertNotEquals(a, e, m) { const p = a !== e;
-                    p ? (this.passes++, this.results.push({ pass: true, message: `${m} (got ${a})` })) : (this.fails++,
-                        this.results.push({ pass: false, message: `${m} — expected not ${e}, got ${a}` })); }
-
-                runAll() {
-                    this.results = [];
-                    this.passes = 0;
-                    this.fails = 0;
-                    // ProblemGenerator tests
-                    for (let i = 0; i < 50; i++) {
-                        const p = ProblemGenerator.generateAddition();
-                        this.assertTrue(p.a >= 0 && p.a <= 20, `Addition a in range`);
-                        this.assertTrue(p.b >= 0 && p.b <= 20, `Addition b in range`);
-                        this.assertTrue(p.a + p.b <= 20, `Addition sum <=20`);
-                        this.assertEquals(p.answer, p.a + p.b, `Addition answer`);
-                    }
-                    for (let i = 0; i < 50; i++) {
-                        const p = ProblemGenerator.generateSubtraction();
-                        this.assertTrue(p.a >= 0 && p.a <= 25, `Sub a range`);
-                        this.assertTrue(p.b >= 0 && p.b <= 25, `Sub b range`);
-                        this.assertTrue(p.b <= p.a, `Sub b<=a`);
-                        this.assertEquals(p.answer, p.a - p.b, `Sub answer`);
-                    }
-                    const seq = ProblemGenerator.generateSequence(10);
-                    this.assertEquals(seq.length, 10, `Seq length`);
-
-                    // Engine tests
-                    const eng = new GameEngine();
-                    eng.start('classic');
-                    this.assertTrue(eng.isRunning, `Engine running`);
-                    this.assertEquals(eng.problems.length, 10, `Classic 10 probs`);
-                    const prob = eng.currentProblem;
-                    eng.submitAnswer(prob.answer);
-                    this.assertEquals(eng.score, 1, `Score inc`);
-                    eng.submitAnswer(prob.answer + 1);
-                    this.assertEquals(eng.streak, 0, `Streak reset`);
-
-                    eng.reset();
-                    eng.start('survival');
-                    const p2 = eng.currentProblem;
-                    eng.submitAnswer(p2.answer);
-                    this.assertTrue(eng.isRunning, `Survival running`);
-                    eng.questionTimer = 0.5;
-                    eng._onTimerExpired();
-                    this.assertTrue(eng.isGameOver, `Survival timeout ends`);
-
-                    // Two-player mode: quick test of data
-                    const ui = new UIManager(eng); // not used fully, just to ensure no errors
-                    this.assertTrue(true, `Two-player setup OK`);
-
-                    // Regression: dynamic sequences
-                    const s1 = ProblemGenerator.generateSequence(5);
-                    const s2 = ProblemGenerator.generateSequence(5);
-                    let same = true;
-                    for (let i = 0; i < 5; i++) { if (s1[i].a !== s2[i].a || s1[i].b !== s2[i].b) { same = false; break; } }
-                    this.assertFalse(same, `Dynamic sequences differ`);
-
-                    this._outputResults();
-                    return { passes: this.passes, fails: this.fails };
-                }
-
-                _outputResults() {
-                    const out = el.testOutput;
-                    if (!out) return;
-                    out.innerHTML = '';
-                    const total = this.passes + this.fails;
-                    const header = document.createElement('div');
-                    header.style.marginBottom = '10px';
-                    header.style.fontWeight = '700';
-                    header.style.fontSize = '15px';
-                    header.innerHTML =
-                        `🧪 Tests: <span class="${this.fails === 0 ? 'pass' : 'fail'}">${this.passes} passed</span> / ${total} total  ${this.fails > 0 ? `❌ ${this.fails} failed` : '✅ All green!'}`;
-                    out.appendChild(header);
-                    for (const r of this.results) {
-                        const div = document.createElement('div');
-                        div.style.padding = '3px 0';
-                        div.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
-                        div.innerHTML =
-                            `${r.pass ? '✅' : '❌'} <span class="${r.pass ? 'pass' : 'fail'}">${r.message}</span>`;
-                        out.appendChild(div);
-                    }
-                    out.style.display = 'none !important';
-                }
-            }
-
-            // ============================================================
-            //  INIT
-            // ============================================================
-            function initApp() {
-                const engine = new GameEngine();
-                const ui = new UIManager(engine);
-                // Start with classic
-                ui._startGame('classic');
-                window.__engine = engine;
-                window.__ui = ui;
-                // Run tests silently
-                setTimeout(() => {
-                    const runner = new TestRunner();
-                    runner.runAll();
-                }, 300);
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initApp);
-            } else {
-                initApp();
-            }
-
-        })();
-    </script>
-
+    <div class="best-scores">
+      <div class="best-pill">Classic best: <strong id="bestClassicLbl">0</strong></div>
+      <div class="best-pill">Survival best: <strong id="bestSurvivalLbl">0</strong></div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN (Classic / Survival share this shell) -->
+  <div id="gameScreen" class="screen">
+    <div class="top-nav">
+      <button class="nav-btn" onclick="exitToMenu()">← Menu</button>
+    </div>
+    <div id="gameContent"></div>
+  </div>
+
+  <!-- TWO PLAYER SETUP -->
+  <div id="setupScreen" class="screen">
+    <div class="top-nav">
+      <button class="nav-btn" onclick="exitToMenu()">← Menu</button>
+    </div>
+    <div class="mode-card" style="text-align:left;">
+      <div class="mode-name" style="text-align:center;">👥 Two-Player Setup</div>
+      <div class="setup-row">
+        <label>Player 1 name</label>
+        <input type="text" id="p1NameInput" placeholder="Player 1" value="Player 1">
+        <label>Player 2 name</label>
+        <input type="text" id="p2NameInput" placeholder="Player 2" value="Player 2">
+      </div>
+      <button class="mode-play-btn twoplayer" style="width:100%;" onclick="beginTwoPlayer()">🚀 START</button>
+    </div>
+  </div>
+
+  <!-- TWO PLAYER GAME -->
+  <div id="tpGameScreen" class="screen">
+    <div class="top-nav">
+      <button class="nav-btn" onclick="exitToMenu()">← Menu</button>
+    </div>
+    <div id="tpContent"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  SHARED HELPERS
+// ============================================================
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function $(id){return document.getElementById(id);}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+
+// ---- audio (simple tones, matches the Math Kingdom app's approach) ----
+let audioCtx=null;
+function getACtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+document.addEventListener('click',()=>{try{if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();}catch(e){}});
+function playTone(freq,type,dur,vol){try{const ctx=getACtx();const o=ctx.createOscillator();const g=ctx.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,ctx.currentTime);g.gain.setValueAtTime(vol||0.1,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur);}catch(e){}}
+function playCorrectSound(){playTone(523,'sine',.15,.1);setTimeout(()=>playTone(659,'sine',.15,.1),120);setTimeout(()=>playTone(784,'sine',.25,.1),240);}
+function playWrongSound(){playTone(300,'sawtooth',.15,.08);setTimeout(()=>playTone(250,'sawtooth',.2,.08),150);}
+function playChompSound(){playTone(150,'square',.08,.12);setTimeout(()=>playTone(100,'square',.15,.12),80);}
+function playCelebrationSound(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',.2,.1),i*120));}
+
+// ---- confetti ----
+const confCanvas=$('confettiCanvas');const confCtx=confCanvas.getContext('2d');let confParticles=[];
+function resizeConf(){confCanvas.width=window.innerWidth;confCanvas.height=window.innerHeight;}
+resizeConf();window.addEventListener('resize',resizeConf);
+function launchConfetti(count){
+  const cols=['#6c8cff','#a78bfa','#ff6eb4','#fcd34d','#34d399','#f97316'];
+  for(let i=0;i<(count||40);i++){confParticles.push({x:Math.random()*confCanvas.width,y:confCanvas.height*.25,vx:(Math.random()-.5)*14,vy:(Math.random()*-12)-4,color:cols[Math.floor(Math.random()*cols.length)],size:Math.random()*8+5,gravity:.5,alpha:1,rot:Math.random()*360,rotv:(Math.random()-.5)*10});}
+  if(!confRunning)runConf();
+}
+let confRunning=false;
+function runConf(){
+  confRunning=true;confCtx.clearRect(0,0,confCanvas.width,confCanvas.height);
+  confParticles=confParticles.filter(p=>p.alpha>.04);
+  confParticles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.gravity;p.vx*=.99;p.alpha-=.013;p.rot+=p.rotv;confCtx.save();confCtx.globalAlpha=p.alpha;confCtx.fillStyle=p.color;confCtx.translate(p.x,p.y);confCtx.rotate(p.rot*Math.PI/180);confCtx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);confCtx.restore();});
+  if(confParticles.length>0)requestAnimationFrame(runConf);else{confRunning=false;confCtx.clearRect(0,0,confCanvas.width,confCanvas.height);}
+}
+
+// ============================================================
+//  PROBLEM GENERATOR — addition sums <=20, subtraction minuend <=25,
+//  always freshly generated (nothing cached/hardcoded).
+// ============================================================
+function generateMentalMathProblem(allowSub){
+  const op=(!allowSub || rnd(0,1)===0)?'add':'sub';
+  if(op==='add'){
+    let a,b,g=0;
+    do{a=rnd(2,18);b=rnd(2,18);g++;}while((a+b>20||a+b<3)&&g<300);
+    return{op:'+',a,b,answer:a+b};
+  } else {
+    let a,b,g=0;
+    do{a=rnd(6,25);b=rnd(2,a-1);g++;}while((a-b<1)&&g<300);
+    return{op:'\u2212',a,b,answer:a-b};
+  }
+}
+
+// ============================================================
+//  BEST-SCORE PERSISTENCE
+// ============================================================
+let bestScores={classicBest:0,survivalBest:0};
+try{const s=localStorage.getItem('mmg-best');if(s)bestScores=Object.assign(bestScores,JSON.parse(s));}catch(e){}
+function saveBestScores(){localStorage.setItem('mmg-best',JSON.stringify(bestScores));}
+function refreshBestLabels(){
+  $('bestClassicLbl').textContent=bestScores.classicBest||0;
+  $('bestSurvivalLbl').textContent=bestScores.survivalBest||0;
+}
+refreshBestLabels();
+
+window.exitToMenu=function(){
+  if(classic){classic.active=false;clearInterval(classic.countdownId);}
+  if(survival){survival.active=false;clearTimeout(survival.timeoutId);clearInterval(survival.countdownId);}
+  if(tp){tp.active=false;clearInterval(tp.timerId);}
+  refreshBestLabels();
+  showScreen('pickerScreen');
+};
+
+// ============================================================
+//  CLASSIC MODE — 10 questions, each with its OWN 10-second timer
+//  (matches the reference mechanic: a per-question countdown, not one
+//  long clock for the whole round). Running out of time on a question
+//  counts as wrong and immediately advances -- no round-ending penalty
+//  beyond that, so the pressure is per-answer, not cumulative.
+// ============================================================
+const CLASSIC_QUESTIONS=10;
+const CLASSIC_TIME=10; // seconds per question
+let classic=null;
+window.startClassic=function(){
+  classic={qIndex:0,score:0,streak:0,problem:null,active:true,timeLeft:CLASSIC_TIME,countdownId:null,focus:false};
+  classic.problem=generateMentalMathProblem(true);
+  renderClassic();
+  startClassicCountdown();
+  showScreen('gameScreen');
+};
+function startClassicCountdown(){
+  clearInterval(classic.countdownId);
+  classic.timeLeft=CLASSIC_TIME;
+  classic.countdownId=setInterval(()=>{
+    if(!classic||!classic.active)return;
+    classic.timeLeft-=0.1;
+    if(classic.timeLeft<=0){classic.timeLeft=0;updateClassicCountdown();classicTimeout();}
+    else updateClassicCountdown();
+  },100);
+}
+function updateClassicCountdown(){
+  const bar=$('classicCountdownBar'),num=$('classicCountdownNum');
+  if(!bar||!classic)return;
+  const pct=Math.max(0,(classic.timeLeft/CLASSIC_TIME)*100);
+  bar.style.width=pct+'%';
+  bar.classList.toggle('warning',classic.timeLeft<=3);
+  if(num)num.textContent=classic.timeLeft.toFixed(1)+'s';
+}
+function classicTimeout(){
+  if(!classic||!classic.active)return;
+  clearInterval(classic.countdownId);
+  classic.streak=0;
+  playWrongSound();
+  const eqEl=$('classicEquation');
+  if(eqEl){eqEl.classList.remove('flash-ok','flash-bad');void eqEl.offsetWidth;eqEl.classList.add('flash-bad');}
+  advanceClassic();
+}
+function renderClassic(){
+  const c=$('gameContent');
+  c.innerHTML=`
+    <div class="scorecard">
+      <div class="score-box"><div class="score-lbl">Score</div><div class="score-val" id="classicScoreVal">${classic.score}</div></div>
+      <div class="score-box"><div class="score-lbl">Streak</div><div class="score-val streak" id="classicStreakVal">${classic.streak}</div></div>
+      <div class="score-box"><div class="score-lbl">Question</div><div class="score-val">${classic.qIndex+1}/${CLASSIC_QUESTIONS}</div></div>
+    </div>
+    <div class="playfield">
+      <div class="focus-row">Focus <label class="focus-switch"><input type="checkbox" id="classicFocusToggle" ${classic.focus?'checked':''}><span class="focus-slider"></span></label></div>
+      <div class="equation" id="classicEquation">
+        <span>${classic.problem.a} ${classic.problem.op} ${classic.problem.b} =</span>
+        <input type="number" class="eq-input" id="classicInput" autocomplete="off">
+      </div>
+      <div class="countdown-wrap"><div class="countdown-bar" id="classicCountdownBar" style="width:100%;"></div></div>
+      <div class="countdown-num" id="classicCountdownNum">${CLASSIC_TIME.toFixed(1)}s</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn leave" onclick="exitToMenu()">LEAVE</button>
+      <button class="btn restart" onclick="startClassic()">RESTART</button>
+    </div>
+  `;
+  $('classicFocusToggle').addEventListener('change',e=>{classic.focus=e.target.checked;document.querySelector('.scorecard').style.display=classic.focus?'none':'flex';});
+  const input=$('classicInput');input.focus();
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')submitClassicAnswer();});
+}
+function submitClassicAnswer(){
+  if(!classic||!classic.active)return;
+  const raw=$('classicInput')?.value;
+  if(raw===undefined||raw==='')return;
+  clearInterval(classic.countdownId);
+  const eqEl=$('classicEquation');
+  if(parseInt(raw,10)===classic.problem.answer){
+    classic.score++;classic.streak++;
+    playCorrectSound();
+    if(eqEl){eqEl.classList.remove('flash-bad','flash-ok');void eqEl.offsetWidth;eqEl.classList.add('flash-ok');}
+    if(classic.score>0&&classic.score%5===0)launchConfetti(15);
+  } else {
+    classic.streak=0;
+    playWrongSound();
+    if(eqEl){eqEl.classList.remove('flash-ok','flash-bad');void eqEl.offsetWidth;eqEl.classList.add('flash-bad');}
+  }
+  advanceClassic();
+}
+function advanceClassic(){
+  classic.qIndex++;
+  if(classic.qIndex>=CLASSIC_QUESTIONS){ endClassic(); return; }
+  classic.problem=generateMentalMathProblem(true);
+  setTimeout(()=>{ if(classic&&classic.active){ renderClassic(); startClassicCountdown(); } }, 200);
+}
+function endClassic(){
+  if(!classic)return;
+  classic.active=false;clearInterval(classic.countdownId);
+  const isNewBest=classic.score>(bestScores.classicBest||0);
+  if(isNewBest)bestScores.classicBest=classic.score;
+  saveBestScores();playCelebrationSound();
+  if(isNewBest)launchConfetti(120);
+  renderResult('gameContent','Classic',classic.score,bestScores.classicBest,isNewBest,startClassic);
+  refreshBestLabels();
+}
+
+// ============================================================
+//  SURVIVAL MODE — 3 mascot lives. Each problem must be answered
+//  within 10 seconds, or a monster "chomps" one mascot. Wrong
+//  answers also cost a life. Game ends at 0 lives.
+// ============================================================
+const MASCOTS=['🐻','🐰','🐱'];
+const SURVIVAL_TIME=10; // seconds per problem, per spec
+let survival=null;
+window.startSurvival=function(){
+  survival={lives:3,score:0,streak:0,problem:null,active:true,timeLeft:SURVIVAL_TIME,timeoutId:null,countdownId:null,animating:false};
+  spawnSurvivalProblem();
+  renderSurvival();
+  showScreen('gameScreen');
+};
+function spawnSurvivalProblem(){
+  survival.problem=generateMentalMathProblem(true);
+  survival.timeLeft=SURVIVAL_TIME;
+  clearInterval(survival.countdownId);
+  survival.countdownId=setInterval(()=>{
+    if(!survival||!survival.active)return;
+    survival.timeLeft-=0.1;
+    if(survival.timeLeft<=0){survival.timeLeft=0;updateSurvivalCountdown();survivalLoseLife('time');}
+    else updateSurvivalCountdown();
+  },100);
+}
+function updateSurvivalCountdown(){
+  const bar=$('survivalCountdownBar'),num=$('survivalCountdownNum');
+  if(!bar||!survival)return;
+  const pct=Math.max(0,(survival.timeLeft/SURVIVAL_TIME)*100);
+  bar.style.width=pct+'%';
+  bar.classList.toggle('warning',survival.timeLeft<=3);
+  if(num)num.textContent=survival.timeLeft.toFixed(1)+'s';
+  // Build tension: surviving mascots tremble once the clock is nearly out,
+  // so it's visibly clear something bad is about to happen.
+  const inDanger=survival.timeLeft<=3;
+  for(let i=0;i<survival.lives;i++){
+    const slot=document.getElementById('mascotSlot'+i);
+    if(slot)slot.classList.toggle('danger',inDanger);
+  }
+}
+const EAT_DURATION=1150; // must match the mascotEaten/monsterAttack keyframe duration
+function survivalLoseLife(reason){
+  if(!survival||!survival.active||survival.animating)return;
+  clearInterval(survival.countdownId);
+  survival.streak=0;
+  survival.lives--;
+  // Slot that just became lost. render marks a slot lost when i >= lives,
+  // so the slot crossing that line is exactly `survival.lives` post-decrement.
+  const victimIdx=survival.lives;
+  survival.animating=true;
+
+  // Play the eat sequence on the EXISTING element. Critically we do NOT
+  // re-render here -- rebuilding innerHTML would destroy this element and
+  // recreate it already-dead, which kills the animation entirely (that was
+  // the original bug).
+  const slot=document.getElementById('mascotSlot'+victimIdx);
+  if(slot){ slot.classList.remove('danger'); slot.classList.add('eating'); }
+
+  const field=$('survivalPlayfield');
+  if(field){ field.classList.remove('survival-shake'); void field.offsetWidth; field.classList.add('survival-shake'); }
+
+  playChompSound();
+  setTimeout(()=>playChompSound(),260); // second bite, synced to the keyframes
+  playWrongSound();
+  showBigPop(reason==='time'?"\u23f0 TOO SLOW!":'\u274c WRONG!');
+
+  // Let the full animation play out before advancing.
+  setTimeout(()=>{
+    if(!survival)return;
+    survival.animating=false;
+    if(survival.lives<=0){ endSurvival(); return; }
+    spawnSurvivalProblem();
+    renderSurvival();
+  }, EAT_DURATION+150);
+}
+// Big, unmistakable center-screen callout when a mascot is lost -- separate
+// from (and in addition to) the mascot-specific eat animation.
+function showBigPop(text){
+  let pop=document.getElementById('bigPopEl');
+  if(!pop){
+    pop=document.createElement('div');
+    pop.id='bigPopEl';
+    pop.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%) scale(0.5);font-family:"Fredoka One",cursive;font-size:2.4rem;color:#fff;text-shadow:3px 3px 0 #ef4444,6px 6px 0 rgba(0,0,0,.3);z-index:500;pointer-events:none;opacity:0;transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .25s;white-space:nowrap;';
+    document.body.appendChild(pop);
+  }
+  pop.textContent=text;
+  pop.style.opacity='0';
+  pop.style.transform='translate(-50%,-50%) scale(0.5)';
+  void pop.offsetWidth;
+  pop.style.opacity='1';
+  pop.style.transform='translate(-50%,-50%) scale(1)';
+  setTimeout(()=>{ pop.style.opacity='0'; pop.style.transform='translate(-50%,-50%) scale(0.6)'; }, 800);
+}
+function renderSurvival(){
+  const c=$('gameContent');
+  let livesHtml='';
+  for(let i=0;i<3;i++){
+    const lost=i>=survival.lives;
+    livesHtml+=`<div class="mascot-slot${lost?' lost':''}" id="mascotSlot${i}">`
+      +`<span class="mascot">${MASCOTS[i]}</span>`
+      +`<span class="monster">\u{1F479}</span>`
+      +`<span class="puff">\u{1F4A5}</span>`
+      +`</div>`;
+  }
+  c.innerHTML=`
+    <div class="lives-row" id="livesRow">${livesHtml}</div>
+    <div class="scorecard">
+      <div class="score-box"><div class="score-lbl">Score</div><div class="score-val" id="survivalScoreVal">${survival.score}</div></div>
+      <div class="score-box"><div class="score-lbl">Streak</div><div class="score-val streak">${survival.streak}</div></div>
+      <div class="score-box"><div class="score-lbl">Best</div><div class="score-val">${bestScores.survivalBest||0}</div></div>
+    </div>
+    <div class="playfield" id="survivalPlayfield">
+      <div class="equation" id="survivalEquation">
+        <span>${survival.problem.a} ${survival.problem.op} ${survival.problem.b} =</span>
+        <input type="number" class="eq-input" id="survivalInput" autocomplete="off">
+      </div>
+      <div class="countdown-wrap"><div class="countdown-bar" id="survivalCountdownBar" style="width:100%;"></div></div>
+      <div class="countdown-num" id="survivalCountdownNum">${SURVIVAL_TIME.toFixed(1)}s</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn leave" onclick="exitToMenu()" style="flex:1;">LEAVE</button>
+    </div>
+  `;
+  const input=$('survivalInput');
+  if(input){ input.focus(); input.addEventListener('keydown',e=>{if(e.key==='Enter')submitSurvivalAnswer();}); }
+}
+function submitSurvivalAnswer(){
+  if(!survival||!survival.active||survival.animating)return;
+  const raw=$('survivalInput')?.value;
+  if(raw===undefined||raw==='')return;
+  if(parseInt(raw,10)===survival.problem.answer){
+    clearInterval(survival.countdownId);
+    survival.score++;survival.streak++;
+    playCorrectSound();
+    const eqEl=$('survivalEquation');
+    if(eqEl){eqEl.classList.remove('flash-bad','flash-ok');void eqEl.offsetWidth;eqEl.classList.add('flash-ok');}
+    if(survival.score>0&&survival.score%5===0)launchConfetti(15);
+    setTimeout(()=>{ if(survival&&survival.active&&!survival.animating){ spawnSurvivalProblem(); renderSurvival(); } }, 150);
+  } else {
+    survivalLoseLife('wrong');
+  }
+}
+function endSurvival(){
+  if(!survival)return;
+  survival.active=false;
+  clearInterval(survival.countdownId);clearTimeout(survival.timeoutId);
+  const isNewBest=survival.score>(bestScores.survivalBest||0);
+  if(isNewBest)bestScores.survivalBest=survival.score;
+  saveBestScores();playCelebrationSound();
+  if(isNewBest)launchConfetti(120);
+  renderResult('gameContent','Survival',survival.score,bestScores.survivalBest,isNewBest,startSurvival);
+  refreshBestLabels();
+}
+
+// ============================================================
+//  TWO-PLAYER MODE — each player answers 10 questions (same range
+//  rules, freshly generated per player), then compare scores.
+// ============================================================
+const TP_QUESTIONS=10;
+let tp=null;
+window.showTwoPlayerSetup=function(){ showScreen('setupScreen'); $('p1NameInput').focus(); };
+window.beginTwoPlayer=function(){
+  const p1=($('p1NameInput').value||'Player 1').trim()||'Player 1';
+  const p2=($('p2NameInput').value||'Player 2').trim()||'Player 2';
+  tp={p1Name:p1,p2Name:p2,p1Score:0,p2Score:0,currentPlayer:1,qIndex:0,problem:null,active:true};
+  startTpTurn(1);
+  showScreen('tpGameScreen');
+};
+function startTpTurn(playerNum){
+  tp.currentPlayer=playerNum;
+  tp.qIndex=0;
+  tp.problem=generateMentalMathProblem(true);
+  renderTpTurnBanner(playerNum);
+}
+function renderTpTurnBanner(playerNum){
+  const name=playerNum===1?tp.p1Name:tp.p2Name;
+  const c=$('tpContent');
+  c.innerHTML=`
+    <div class="turn-banner">
+      <div style="font-size:1.6rem;">👤</div>
+      <div class="name">${name}'s turn</div>
+      <div style="color:var(--muted);font-size:.85rem;">Answer ${TP_QUESTIONS} questions</div>
+    </div>
+    <button class="mode-play-btn twoplayer" style="width:100%;" onclick="renderTpQuestion()">▶ START TURN</button>
+  `;
+}
+function renderTpQuestion(){
+  const c=$('tpContent');
+  const name=tp.currentPlayer===1?tp.p1Name:tp.p2Name;
+  const score=tp.currentPlayer===1?tp.p1Score:tp.p2Score;
+  c.innerHTML=`
+    <div class="scorecard">
+      <div class="score-box"><div class="score-lbl">${name}</div><div class="score-val">${score}</div></div>
+      <div class="score-box"><div class="score-lbl">Question</div><div class="score-val">${tp.qIndex+1}/${TP_QUESTIONS}</div></div>
+    </div>
+    <div class="playfield">
+      <div class="equation" id="tpEquation">
+        <span>${tp.problem.a} ${tp.problem.op} ${tp.problem.b} =</span>
+        <input type="number" class="eq-input" id="tpInput" autocomplete="off">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" style="flex:1;" onclick="submitTpAnswer()">SUBMIT</button>
+    </div>
+  `;
+  const input=$('tpInput');input.focus();
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')submitTpAnswer();});
+}
+function submitTpAnswer(){
+  const raw=$('tpInput')?.value;
+  if(raw===undefined||raw==='')return;
+  const eqEl=$('tpEquation');
+  if(parseInt(raw,10)===tp.problem.answer){
+    if(tp.currentPlayer===1)tp.p1Score++; else tp.p2Score++;
+    playCorrectSound();
+    if(eqEl){eqEl.classList.remove('flash-bad','flash-ok');void eqEl.offsetWidth;eqEl.classList.add('flash-ok');}
+  } else {
+    playWrongSound();
+    if(eqEl){eqEl.classList.remove('flash-ok','flash-bad');void eqEl.offsetWidth;eqEl.classList.add('flash-bad');}
+  }
+  tp.qIndex++;
+  if(tp.qIndex>=TP_QUESTIONS){
+    if(tp.currentPlayer===1){
+      setTimeout(()=>startTpTurn(2),400);
+    } else {
+      setTimeout(()=>showTpResults(),400);
+    }
+    return;
+  }
+  tp.problem=generateMentalMathProblem(true);
+  setTimeout(renderTpQuestion,150);
+}
+function showTpResults(){
+  const c=$('tpContent');
+  let winnerLine;
+  if(tp.p1Score>tp.p2Score) winnerLine=`🏆 ${tp.p1Name} wins!`;
+  else if(tp.p2Score>tp.p1Score) winnerLine=`🏆 ${tp.p2Name} wins!`;
+  else winnerLine=`🤝 It's a tie!`;
+  playCelebrationSound();launchConfetti(100);
+  c.innerHTML=`
+    <div class="result-panel">
+      <div class="result-emoji">🏆</div>
+      <div class="winner-line">${winnerLine}</div>
+      <div style="display:flex;gap:20px;justify-content:center;color:var(--muted);font-size:.9rem;margin-top:8px;">
+        <span>${tp.p1Name}: <strong style="color:var(--text);">${tp.p1Score}</strong></span>
+        <span>${tp.p2Name}: <strong style="color:var(--text);">${tp.p2Score}</strong></span>
+      </div>
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn primary" onclick="showTwoPlayerSetup()">🔁 Play Again</button>
+        <button class="btn leave" onclick="exitToMenu()">Menu</button>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+//  SHARED RESULT SCREEN (Classic / Survival)
+// ============================================================
+window.__retryFn=null;
+function renderResult(targetId,modeName,score,best,isNewBest,retryFn){
+  window.__retryFn=retryFn;
+  const c=$(targetId);
+  c.innerHTML=`
+    <div class="result-panel">
+      <div class="result-emoji">${isNewBest?'🏆':score>=10?'🎉':'💪'}</div>
+      <div class="result-title">${isNewBest?'New Best Score!':modeName+' Complete!'}</div>
+      <div class="result-bignum">${score}</div>
+      <div class="result-sub">correct in ${modeName}</div>
+      <div class="result-best${isNewBest?' new':''}">Best score: ${best}</div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="window.__retryFn()">🔁 Again</button>
+        <button class="btn leave" onclick="exitToMenu()">Menu</button>
+      </div>
+    </div>`;
+}
+</script>
 </body>
 </html>
