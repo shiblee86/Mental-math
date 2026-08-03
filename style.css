@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0b0e1a;
+  --panel: #141b2d;
+  --panel2: #1a2338;
+  --card: #0f1629;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f4ff;
+  --muted: #8892b0;
+  --blue: #6c8cff;
+  --purple: #a78bfa;
+  --pink: #ff6eb4;
+  --deep-pink: #e8197a;
+  --gold: #fcd34d;
+  --green: #34d399;
+  --red: #f87171;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 14px;
+}
+.wrap { max-width: 560px; width: 100%; }
+
+#confettiCanvas { position:fixed; inset:0; pointer-events:none; z-index:999; }
+
+h1.title { font-family:'Fredoka One',cursive; font-size:1.5rem; text-align:center; margin-bottom:4px;
+  background: linear-gradient(135deg, var(--gold), var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+p.tagline { text-align:center; color:var(--muted); font-size:.85rem; margin-bottom:18px; }
+
+.screen { display:none; }
+.screen.active { display:block; }
+
+/* ── MODE PICKER ── */
+.mode-grid { display:grid; grid-template-columns:1fr; gap:14px; }
+@media (min-width:520px) { .mode-grid { grid-template-columns:1fr 1fr 1fr; } }
+.mode-card { background:var(--panel2); border:2px solid var(--border); border-radius:22px; padding:20px 16px; text-align:center; }
+.mode-icon { font-size:2.2rem; }
+.mode-name { font-family:'Fredoka One',cursive; font-size:1.15rem; color:var(--text); margin:8px 0 6px; }
+.mode-desc { font-size:.78rem; color:var(--muted); min-height:3.4em; line-height:1.4; }
+.mode-play-btn { border:none; border-radius:30px; padding:10px 24px; font-family:'Fredoka One',cursive; font-size:.9rem; cursor:pointer; margin-top:10px; color:#fff; }
+.mode-play-btn.classic  { background:linear-gradient(135deg,#4f6ef7,#7c5cfc); }
+.mode-play-btn.survival { background:linear-gradient(135deg,#f97316,#ef4444); }
+.mode-play-btn.twoplayer{ background:linear-gradient(135deg,#34d399,#10b981); }
+
+.best-scores { display:flex; justify-content:center; gap:18px; margin-top:18px; flex-wrap:wrap; }
+.best-pill { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:6px 14px; font-size:.78rem; color:var(--muted); }
+.best-pill strong { color:var(--gold); }
+
+/* ── SHARED GAME CHROME ── */
+.top-nav { display:flex; gap:8px; margin-bottom:14px; }
+.nav-btn { flex:1; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:9px; color:var(--text); font-weight:700; font-size:.85rem; cursor:pointer; }
+.nav-btn:hover { border-color:var(--blue); }
+
+.scorecard { display:flex; gap:10px; margin-bottom:14px; }
+.score-box { flex:1; background:var(--card); border-radius:16px; padding:12px; text-align:center; border:1px solid var(--border); }
+.score-lbl { font-size:.72rem; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.4px; }
+.score-val { font-family:'Fredoka One',cursive; font-size:1.6rem; color:var(--text); }
+.score-val.streak { color:var(--green); }
+
+/* ── CLASSIC ── */
+.timer-badge { display:inline-block; background:linear-gradient(135deg,#ff6b6b,var(--pink)); color:#fff; font-family:'Fredoka One',cursive; font-size:1.5rem; padding:9px 20px; border-radius:16px; }
+.playfield { background:var(--panel); border-radius:20px; padding:18px; border:1px solid var(--border); margin-top:14px; }
+.focus-row { text-align:right; margin-bottom:6px; font-size:.78rem; color:var(--muted); font-weight:800; }
+.focus-switch { position:relative; display:inline-block; width:36px; height:20px; vertical-align:middle; margin-left:6px; }
+.focus-switch input { opacity:0; width:0; height:0; }
+.focus-slider { position:absolute; cursor:pointer; inset:0; background:var(--card); border:1px solid var(--border); border-radius:20px; transition:.2s; }
+.focus-slider::before { content:''; position:absolute; width:12px; height:12px; left:3px; top:2px; background:var(--muted); border-radius:50%; transition:.2s; }
+.focus-switch input:checked + .focus-slider { background:var(--deep-pink); }
+.focus-switch input:checked + .focus-slider::before { transform:translateX(15px); background:#fff; }
+
+.equation { display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Fredoka One',cursive; font-size:clamp(1.8rem,7vw,2.6rem); padding:20px 0; }
+.equation.flash-ok  { animation: flashOk .35s; }
+.equation.flash-bad { animation: flashBad .35s; }
+@keyframes flashOk  { 0%{color:var(--green);} 100%{color:var(--text);} }
+@keyframes flashBad { 0%{color:var(--red);} 100%{color:var(--text);} }
+.eq-input { width:100px; font-size:1.5rem; font-family:'Fredoka One',cursive; text-align:center; background:var(--card); border:2px solid var(--border); border-radius:12px; color:var(--gold); padding:6px; outline:none; }
+.eq-input:focus { border-color:var(--blue); }
+
+.btn-row { display:flex; gap:10px; margin-top:14px; }
+.btn { flex:1; border:none; border-radius:20px; padding:12px; font-family:'Fredoka One',cursive; font-size:.9rem; cursor:pointer; }
+.btn.leave  { background:var(--card); color:var(--text); border:1px solid var(--border); }
+.btn.restart{ background:var(--card); color:var(--text); border:1px solid var(--border); }
+.btn.primary{ background:linear-gradient(135deg,#4f6ef7,#7c5cfc); color:#fff; }
+
+/* ── SURVIVAL ── */
+/* ── TREE CLIMB (monkey climbs up on correct, slips down on wrong) ── */
+.tree-scene { position:relative; height:210px; width:130px; margin:4px auto 12px; }
+.tree-canopy { position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:95px; }
+.tree-canopy .leaf { position:absolute; border-radius:50%; background:radial-gradient(circle at 35% 30%, #4ade80, #16a34a 70%); box-shadow:inset -6px -6px 10px rgba(0,0,0,.25); }
+.tree-canopy .leaf1 { width:70px; height:70px; left:10px; top:15px; }
+.tree-canopy .leaf2 { width:60px; height:60px; left:55px; top:0; }
+.tree-canopy .leaf3 { width:55px; height:55px; left:35px; top:32px; }
+.tree-trunk { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); width:16px; height:150px; background:linear-gradient(180deg,#8b5a2b,#6b4423); border-radius:6px 6px 2px 2px; box-shadow:inset -3px 0 4px rgba(0,0,0,.3); }
+.tree-trunk::before { content:''; position:absolute; inset:0; background-image:repeating-linear-gradient(115deg, rgba(0,0,0,.15) 0 3px, transparent 3px 11px); border-radius:6px 6px 2px 2px; }
+.tree-ground { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:120px; height:16px; background:radial-gradient(ellipse at center, rgba(52,211,153,.4), transparent 72%); }
+.tree-goal { position:absolute; top:-6px; left:50%; transform:translate(-50%,0); font-size:1.5rem; transition:opacity .4s, transform .4s; z-index:2; }
+.tree-goal.claimed { opacity:0; transform:translate(-50%,-30px) scale(1.6); }
+.tree-monkey { position:absolute; left:50%; bottom:14px; font-size:2rem; transform:translateX(-50%); transition:bottom .45s cubic-bezier(.34,1.56,.64,1); z-index:3; }
+.tree-monkey.climb-up { animation: monkeyHop .45s ease; }
+.tree-monkey.climb-down { animation: monkeySlip .45s ease; }
+@keyframes monkeyHop {
+  0%   { transform:translateX(-50%) scale(1) rotate(0); }
+  40%  { transform:translateX(-50%) scale(1.25) rotate(-14deg); }
+  70%  { transform:translateX(-50%) scale(1.08) rotate(10deg); }
+  100% { transform:translateX(-50%) scale(1) rotate(0); }
+}
+@keyframes monkeySlip {
+  0%   { transform:translateX(-50%) scale(1) rotate(0); }
+  30%  { transform:translateX(-50%) scale(.9) rotate(16deg); }
+  60%  { transform:translateX(-50%) scale(.95) rotate(-12deg); }
+  100% { transform:translateX(-50%) scale(1) rotate(0); }
+}
+
+/* Tension: the monkey trembles once the clock is nearly out */
+.tree-scene.time-danger .tree-monkey { animation: tremble .32s linear infinite; }
+@keyframes tremble {
+  0%,100% { transform:translate(-50%,0) rotate(0); }
+  25%     { transform:translate(calc(-50% - 2px),1px) rotate(-7deg); }
+  75%     { transform:translate(calc(-50% + 2px),-1px) rotate(7deg); }
+}
+
+.survival-shake { animation: shake .4s; }
+@keyframes shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+
+.countdown-wrap { height:10px; background:var(--card); border-radius:10px; overflow:hidden; margin:10px 0 4px; border:1px solid var(--border); }
+.countdown-bar { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--gold),#f59e0b); transition:width .1s linear, background .2s; }
+.countdown-bar.warning { background:linear-gradient(90deg,var(--red),#ef4444); }
+.countdown-num { text-align:center; font-size:.78rem; color:var(--muted); font-weight:800; }
+
+/* ── TWO PLAYER RACE ── */
+.setup-row { display:flex; flex-direction:column; gap:10px; margin:14px 0; }
+.setup-row label { font-size:.85rem; color:var(--muted); font-weight:800; }
+.setup-row input { background:var(--card); border:2px solid var(--border); border-radius:16px; padding:12px 16px; color:var(--text); font-size:1rem; outline:none; }
+.setup-row input:focus { border-color:var(--blue); }
+.setup-row.inline { flex-direction:row; }
+.setup-row.inline input { border-radius:16px 0 0 16px; }
+.setup-row.inline button { border-radius:0 16px 16px 0; margin:0; }
+
+.spinner { width:34px; height:34px; border:4px solid var(--border); border-top-color:var(--blue); border-radius:50%; margin:18px auto 4px; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.race-timer-badge { display:block; text-align:center; font-family:'Fredoka One',cursive; font-size:2rem; color:var(--gold); margin-bottom:10px; }
+.race-lane-label { display:flex; justify-content:space-between; font-size:.78rem; color:var(--muted); font-weight:800; margin-bottom:4px; }
+.race-lane-label strong { color:var(--text); font-size:.95rem; }
+.race-lane { position:relative; height:52px; background:linear-gradient(180deg,#2a2f3d,#20242f); border-radius:14px; margin-bottom:14px; overflow:hidden; border:1px solid var(--border); }
+.race-lane::before { content:''; position:absolute; left:0; right:0; top:50%; height:2px; background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 14px,transparent 14px 26px); transform:translateY(-50%); }
+.race-lane .flag { position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:1.3rem; }
+.race-lane .car { position:absolute; top:50%; left:2%; transform:translate(0,-50%); font-size:1.8rem; transition:left .4s cubic-bezier(.34,1.56,.64,1); }
+.race-lane .car.you { filter:drop-shadow(0 0 4px var(--blue)); }
+.race-lane .car.opp { filter:drop-shadow(0 0 4px var(--pink)); }
+
+.race-countdown-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(11,14,26,.78); z-index:600; font-family:'Fredoka One',cursive; font-size:5rem; color:var(--gold); }
+
+/* ── RESULT ── */
+.result-panel { text-align:center; padding:20px 10px; }
+.result-emoji { font-size:3rem; }
+.result-title { font-family:'Fredoka One',cursive; font-size:1.4rem; color:var(--pink); margin:8px 0; }
+.result-title.win { color:var(--gold); font-size:1.7rem; animation: winPop .5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes winPop { 0%{transform:scale(.3);opacity:0;} 60%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);} }
+.result-bignum { font-family:'Fredoka One',cursive; font-size:3rem; color:var(--gold); }
+.result-sub { color:var(--muted); font-size:.85rem; margin-top:2px; }
+.result-best { font-size:.85rem; color:var(--muted); margin-top:8px; }
+.result-best.new { color:var(--gold); font-weight:800; }
+.winner-line { font-family:'Fredoka One',cursive; font-size:1.6rem; color:var(--gold); margin:10px 0; }
