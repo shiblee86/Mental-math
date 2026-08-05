@@ -20,7 +20,7 @@ const confCanvas=$('confettiCanvas');const confCtx=confCanvas.getContext('2d');l
 function resizeConf(){confCanvas.width=window.innerWidth;confCanvas.height=window.innerHeight;}
 resizeConf();window.addEventListener('resize',resizeConf);
 function launchConfetti(count){
-  const cols=['#6c8cff','#a78bfa','#ff6eb4','#fcd34d','#34d399','#f97316'];
+  const cols=['#17C7C7','#FF5C3D','#FFB020','#2FE6A7','#7EEAEA','#FFC94D'];
   for(let i=0;i<(count||40);i++){confParticles.push({x:Math.random()*confCanvas.width,y:confCanvas.height*.25,vx:(Math.random()-.5)*14,vy:(Math.random()*-12)-4,color:cols[Math.floor(Math.random()*cols.length)],size:Math.random()*8+5,gravity:.5,alpha:1,rot:Math.random()*360,rotv:(Math.random()-.5)*10});}
   if(!confRunning)runConf();
 }
@@ -131,8 +131,8 @@ function renderClassic(){
       <div class="countdown-num" id="classicCountdownNum">${CLASSIC_TIME.toFixed(1)}s</div>
     </div>
     <div class="btn-row">
-      <button class="btn leave" onclick="exitToMenu()">LEAVE</button>
-      <button class="btn restart" onclick="startClassic()">RESTART</button>
+      <button class="btn btn-ghost" onclick="exitToMenu()">LEAVE</button>
+      <button class="btn btn-ghost" onclick="startClassic()">RESTART</button>
     </div>
   `;
   $('classicFocusToggle').addEventListener('change',e=>{classic.focus=e.target.checked;document.querySelector('.scorecard').style.display=classic.focus?'none':'flex';});
@@ -233,16 +233,14 @@ function showBigPop(text){
   if(!pop){
     pop=document.createElement('div');
     pop.id='bigPopEl';
-    pop.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%) scale(0.5);font-family:"Fredoka One",cursive;font-size:2.4rem;color:#fff;text-shadow:3px 3px 0 #ef4444,6px 6px 0 rgba(0,0,0,.3);z-index:500;pointer-events:none;opacity:0;transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .25s;white-space:nowrap;';
+    pop.className='big-pop';
     document.body.appendChild(pop);
   }
   pop.textContent=text;
-  pop.style.opacity='0';
-  pop.style.transform='translate(-50%,-50%) scale(0.5)';
+  pop.classList.remove('show');
   void pop.offsetWidth;
-  pop.style.opacity='1';
-  pop.style.transform='translate(-50%,-50%) scale(1)';
-  setTimeout(()=>{ pop.style.opacity='0'; pop.style.transform='translate(-50%,-50%) scale(0.6)'; }, 800);
+  pop.classList.add('show');
+  setTimeout(()=>{ pop.classList.remove('show'); }, 800);
 }
 function survivalTimeout(){
   if(!survival||!survival.active||survival.animating)return;
@@ -283,7 +281,7 @@ function renderSurvival(){
       <div class="countdown-num" id="survivalCountdownNum">${SURVIVAL_TIME.toFixed(1)}s</div>
     </div>
     <div class="btn-row">
-      <button class="btn leave" onclick="exitToMenu()" style="flex:1;">LEAVE</button>
+      <button class="btn btn-ghost" onclick="exitToMenu()" style="flex:1;">LEAVE</button>
     </div>
   `;
   if(survival.climb>=TREE_HEIGHT_STEPS){ const g=$('treeGoal'); if(g)g.classList.add('claimed'); }
@@ -534,7 +532,7 @@ function renderRaceShell(){
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn leave" onclick="exitToMenu()" style="flex:1;">LEAVE</button>
+      <button class="btn btn-ghost" onclick="exitToMenu()" style="flex:1;">LEAVE</button>
     </div>
   `;
 }
@@ -617,7 +615,7 @@ function maybeFinishRace(){
     if(content&&!document.getElementById('raceWaitNote')){
       const note=document.createElement('div');
       note.id='raceWaitNote';
-      note.style.cssText='text-align:center;color:var(--muted);font-size:.85rem;margin-top:10px;';
+      note.style.cssText='text-align:center;color:var(--ink-300);font-size:var(--text-sm);margin-top:10px;';
       note.textContent='Waiting for '+(race.oppName||'opponent')+' to finish…';
       content.appendChild(note);
     }
@@ -629,7 +627,7 @@ function showRaceResult(oppMissing){
   const myScore=race.score,oppScore=race.oppScore||0,oppName=race.oppName||'Opponent';
   let winnerLine,iWon;
   if(oppMissing){
-    winnerLine=`🏆 ${race.myName} Wins the race! <span style="font-size:.7rem;color:var(--muted);">(opponent didn't finish)</span>`;
+    winnerLine=`🏆 ${race.myName} Wins the race! <span style="font-size:.7rem;color:var(--ink-300);">(opponent didn't finish)</span>`;
     iWon=true;
   } else if(myScore>oppScore){
     winnerLine=`🏆 ${race.myName} Wins the race!`; iWon=true;
@@ -645,13 +643,13 @@ function showRaceResult(oppMissing){
     <div class="result-panel">
       <div class="result-emoji">🏁</div>
       <div class="winner-line">${winnerLine}</div>
-      <div style="display:flex;gap:20px;justify-content:center;color:var(--muted);font-size:.9rem;margin-top:8px;">
-        <span>${race.myName}: <strong style="color:var(--text);">${myScore}</strong></span>
-        <span>${oppName}: <strong style="color:var(--text);">${oppScore}</strong></span>
+      <div style="display:flex;gap:20px;justify-content:center;color:var(--ink-300);font-size:var(--text-base);margin-top:8px;">
+        <span>${race.myName}: <strong style="color:var(--ink-000);">${myScore}</strong></span>
+        <span>${oppName}: <strong style="color:var(--ink-000);">${oppScore}</strong></span>
       </div>
       <div class="btn-row" style="margin-top:16px;">
-        <button class="btn primary" onclick="showTwoPlayerSetup()">🔁 New Race</button>
-        <button class="btn leave" onclick="exitToMenu()">Menu</button>
+        <button class="btn btn-accent" onclick="showTwoPlayerSetup()">🔁 New Race</button>
+        <button class="btn btn-ghost" onclick="exitToMenu()">Menu</button>
       </div>
     </div>`;
 }
@@ -686,8 +684,8 @@ function renderResult(targetId,modeName,score,best,isNewBest,retryFn,opts){
       <div class="result-sub">correct in ${modeName}</div>
       <div class="result-best${isNewBest?' new':''}">Best score: ${best}</div>
       <div class="btn-row">
-        <button class="btn primary" onclick="window.__retryFn()">🔁 Again</button>
-        <button class="btn leave" onclick="exitToMenu()">Menu</button>
+        <button class="btn btn-primary" onclick="window.__retryFn()">🔁 Again</button>
+        <button class="btn btn-ghost" onclick="exitToMenu()">Menu</button>
       </div>
     </div>`;
 }

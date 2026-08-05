@@ -9,29 +9,32 @@
 <body>
 <canvas id="confettiCanvas"></canvas>
 <div class="wrap">
-  <h1 class="title">🧮 Mental Math Games</h1>
+  <div class="app-header">
+    <div class="avatar-badge">🎯</div>
+    <h1 class="title">🧮 Mental Math Games</h1>
+  </div>
   <p class="tagline">Addition to 20 &middot; Subtraction to 25 &middot; a fresh set every round</p>
 
   <!-- MODE PICKER -->
   <div id="pickerScreen" class="screen active">
     <div class="mode-grid">
-      <div class="mode-card">
+      <div class="mode-card classic">
         <div class="mode-icon">⏰</div>
         <div class="mode-name">Classic</div>
         <div class="mode-desc">10 questions, 10 seconds each — answer as fast as you can before the clock runs out on each one!</div>
-        <button class="mode-play-btn classic" onclick="startClassic()">PLAY</button>
+        <button class="btn btn-primary" onclick="startClassic()">PLAY</button>
       </div>
-      <div class="mode-card">
-        <div class="mode-icon">🐻</div>
+      <div class="mode-card survival">
+        <div class="mode-icon">🐒</div>
         <div class="mode-name">Survival</div>
         <div class="mode-desc">Help the monkey climb the tree! Answer within 10 seconds to climb higher — get it wrong and it slips back down.</div>
-        <button class="mode-play-btn survival" onclick="startSurvival()">PLAY</button>
+        <button class="btn btn-accent" onclick="startSurvival()">PLAY</button>
       </div>
-      <div class="mode-card">
+      <div class="mode-card twoplayer">
         <div class="mode-icon">👥</div>
         <div class="mode-name">2-Player</div>
         <div class="mode-desc">Race a friend anywhere in the world! 60 seconds, most correct answers wins the race.</div>
-        <button class="mode-play-btn twoplayer" onclick="showTwoPlayerSetup()">PLAY</button>
+        <button class="btn btn-reward" onclick="showTwoPlayerSetup()">PLAY</button>
       </div>
     </div>
     <div class="best-scores">
@@ -53,19 +56,22 @@
     <div class="top-nav">
       <button class="nav-btn" onclick="exitToMenu()">← Menu</button>
     </div>
-    <div class="mode-card" style="text-align:left;">
-      <div class="mode-name" style="text-align:center;">🏁 Two-Player Race</div>
+    <div class="mode-card twoplayer" style="text-align:left;cursor:default;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div class="avatar-badge" style="width:72px;height:72px;font-size:34px;">🏁</div>
+        <div class="mode-name" style="text-align:center;">🏁 Two-Player Race</div>
+      </div>
       <div class="setup-row">
         <label>Your name</label>
         <input type="text" id="raceNameInput" placeholder="Your name">
       </div>
-      <button class="mode-play-btn twoplayer" style="width:100%;" onclick="hostRace()">🚗 Host a New Race</button>
-      <div style="text-align:center;color:var(--muted);font-size:.8rem;margin:14px 0 6px;">— or join a friend's race —</div>
+      <button class="btn btn-reward" style="width:100%;" onclick="hostRace()">🚗 Host a New Race</button>
+      <div class="setup-divider">— or join a friend's race —</div>
       <div class="setup-row inline">
         <input type="text" id="raceCodeInput" placeholder="ROOM CODE" style="flex:1;text-transform:uppercase;" maxlength="4">
-        <button class="mode-play-btn twoplayer" onclick="joinRace()">Join</button>
+        <button class="btn btn-reward" onclick="joinRace()">Join</button>
       </div>
-      <div id="raceSetupMsg" style="color:var(--red);font-size:.8rem;margin-top:8px;min-height:1.2em;"></div>
+      <div id="raceSetupMsg" class="setup-msg"></div>
     </div>
   </div>
 
@@ -74,10 +80,10 @@
     <div class="top-nav">
       <button class="nav-btn" onclick="exitToMenu()">← Menu</button>
     </div>
-    <div class="mode-card" style="text-align:center;">
+    <div class="mode-card twoplayer" style="text-align:center;cursor:default;">
       <div class="mode-name">Room Code</div>
-      <div id="waitRoomCode" style="font-family:'Fredoka One',cursive;font-size:2.4rem;color:var(--gold);letter-spacing:4px;">----</div>
-      <div id="waitStatusMsg" style="color:var(--muted);margin-top:10px;">Share this code with your opponent…</div>
+      <div id="waitRoomCode" class="wait-room-code">----</div>
+      <div id="waitStatusMsg" class="wait-status">Share this code with your opponent…</div>
       <div class="spinner"></div>
     </div>
   </div>
