@@ -1,0 +1,23 @@
+{
+  "name": "mental-math",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiblee86/Mental-math.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shiblee86/Mental-math/issues"
+  },
+  "homepage": "https://github.com/shiblee86/Mental-math#readme",
+  "description": "",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

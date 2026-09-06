@@ -61,11 +61,35 @@ function refreshBestLabels(){
 }
 refreshBestLabels();
 
+// ============================================================
+//  ANSWER TIMER PICKER — persisted per-question countdown length,
+//  shared by Classic and Survival (2-Player race is a fixed 60s and
+//  is unaffected).
+// ============================================================
+const TIMER_OPTIONS=[10,15,20,30];
+let timerSeconds=20; // default, was hardcoded 10 via CLASSIC_TIME/SURVIVAL_TIME
+try{const t=localStorage.getItem('mmg-timer');if(t)timerSeconds=parseInt(t,10)||20;}catch(e){}
+function setTimerSeconds(sec){
+  timerSeconds=sec;
+  try{localStorage.setItem('mmg-timer',String(sec));}catch(e){}
+  renderTimerPicker();
+}
+window.setTimerSeconds=setTimerSeconds;
+function renderTimerPicker(){
+  const row=$('timerChipRow');
+  if(row)row.innerHTML=TIMER_OPTIONS.map(sec=>`<button class="timer-chip${sec===timerSeconds?' selected':''}" onclick="setTimerSeconds(${sec})">${sec}s</button>`).join('');
+  const classicDesc=$('classicModeDesc');
+  if(classicDesc)classicDesc.textContent=`${CLASSIC_QUESTIONS} questions, ${timerSeconds} seconds each — answer as fast as you can before the clock runs out on each one!`;
+  const survivalDesc=$('survivalModeDesc');
+  if(survivalDesc)survivalDesc.textContent=`Help the monkey climb the tree! Answer within ${timerSeconds} seconds to climb higher — get it wrong and it slips back down.`;
+}
+
 window.exitToMenu=function(){
   if(classic){classic.active=false;clearInterval(classic.countdownId);}
   if(survival){survival.active=false;clearInterval(survival.countdownId);}
   cleanupRace();
   refreshBestLabels();
+  renderTimerPicker();
   showScreen('pickerScreen');
 };
 
@@ -77,10 +101,10 @@ window.exitToMenu=function(){
 //  beyond that, so the pressure is per-answer, not cumulative.
 // ============================================================
 const CLASSIC_QUESTIONS=10;
-const CLASSIC_TIME=10; // seconds per question
 let classic=null;
 window.startClassic=function(){
-  classic={qIndex:0,score:0,streak:0,problem:null,active:true,timeLeft:CLASSIC_TIME,countdownId:null,focus:false};
+  const roundTime=timerSeconds;
+  classic={qIndex:0,score:0,streak:0,problem:null,active:true,timeLeft:roundTime,totalTime:roundTime,countdownId:null,focus:false};
   classic.problem=generateMentalMathProblem(true);
   renderClassic();
   startClassicCountdown();
@@ -88,7 +112,7 @@ window.startClassic=function(){
 };
 function startClassicCountdown(){
   clearInterval(classic.countdownId);
-  classic.timeLeft=CLASSIC_TIME;
+  classic.timeLeft=classic.totalTime;
   classic.countdownId=setInterval(()=>{
     if(!classic||!classic.active)return;
     classic.timeLeft-=0.1;
@@ -99,7 +123,7 @@ function startClassicCountdown(){
 function updateClassicCountdown(){
   const bar=$('classicCountdownBar'),num=$('classicCountdownNum');
   if(!bar||!classic)return;
-  const pct=Math.max(0,(classic.timeLeft/CLASSIC_TIME)*100);
+  const pct=Math.max(0,(classic.timeLeft/classic.totalTime)*100);
   bar.style.width=pct+'%';
   bar.classList.toggle('warning',classic.timeLeft<=3);
   if(num)num.textContent=classic.timeLeft.toFixed(1)+'s';
@@ -128,7 +152,7 @@ function renderClassic(){
         <input type="number" class="eq-input" id="classicInput" autocomplete="off">
       </div>
       <div class="countdown-wrap"><div class="countdown-bar" id="classicCountdownBar" style="width:100%;"></div></div>
-      <div class="countdown-num" id="classicCountdownNum">${CLASSIC_TIME.toFixed(1)}s</div>
+      <div class="countdown-num" id="classicCountdownNum">${classic.totalTime.toFixed(1)}s</div>
     </div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="exitToMenu()">LEAVE</button>
@@ -183,12 +207,12 @@ function endClassic(){
 //  monkey all the way to the banana and shows a "You WIN!" banner.
 // ============================================================
 const SURVIVAL_QUESTIONS=10;
-const SURVIVAL_TIME=10; // seconds per problem
 const TREE_HEIGHT_STEPS=SURVIVAL_QUESTIONS;
 const CLIMB_ANIM_MS=450; // must match the monkeyHop/monkeySlip keyframe duration
 let survival=null;
 window.startSurvival=function(){
-  survival={qIndex:0,score:0,streak:0,climb:0,problem:null,active:true,timeLeft:SURVIVAL_TIME,countdownId:null,animating:false};
+  const roundTime=timerSeconds;
+  survival={qIndex:0,score:0,streak:0,climb:0,problem:null,active:true,timeLeft:roundTime,totalTime:roundTime,countdownId:null,animating:false};
   survival.problem=generateMentalMathProblem(true);
   renderSurvival();
   startSurvivalCountdown();
@@ -196,7 +220,7 @@ window.startSurvival=function(){
 };
 function startSurvivalCountdown(){
   clearInterval(survival.countdownId);
-  survival.timeLeft=SURVIVAL_TIME;
+  survival.timeLeft=survival.totalTime;
   survival.countdownId=setInterval(()=>{
     if(!survival||!survival.active)return;
     survival.timeLeft-=0.1;
@@ -207,7 +231,7 @@ function startSurvivalCountdown(){
 function updateSurvivalCountdown(){
   const bar=$('survivalCountdownBar'),num=$('survivalCountdownNum'),scene=$('treeScene');
   if(!bar||!survival)return;
-  const pct=Math.max(0,(survival.timeLeft/SURVIVAL_TIME)*100);
+  const pct=Math.max(0,(survival.timeLeft/survival.totalTime)*100);
   bar.style.width=pct+'%';
   bar.classList.toggle('warning',survival.timeLeft<=3);
   if(num)num.textContent=survival.timeLeft.toFixed(1)+'s';
@@ -278,7 +302,7 @@ function renderSurvival(){
         <input type="number" class="eq-input" id="survivalInput" autocomplete="off">
       </div>
       <div class="countdown-wrap"><div class="countdown-bar" id="survivalCountdownBar" style="width:100%;"></div></div>
-      <div class="countdown-num" id="survivalCountdownNum">${SURVIVAL_TIME.toFixed(1)}s</div>
+      <div class="countdown-num" id="survivalCountdownNum">${survival.totalTime.toFixed(1)}s</div>
     </div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="exitToMenu()" style="flex:1;">LEAVE</button>
@@ -689,3 +713,5 @@ function renderResult(targetId,modeName,score,best,isNewBest,retryFn,opts){
       </div>
     </div>`;
 }
+
+renderTimerPicker();

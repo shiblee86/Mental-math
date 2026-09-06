@@ -17,17 +17,21 @@
 
   <!-- MODE PICKER -->
   <div id="pickerScreen" class="screen active">
+    <div class="timer-picker-row">
+      <div class="timer-picker-label">⏱ Answer timer</div>
+      <div class="timer-chip-row" id="timerChipRow"></div>
+    </div>
     <div class="mode-grid">
       <div class="mode-card classic">
         <div class="mode-icon">⏰</div>
         <div class="mode-name">Classic</div>
-        <div class="mode-desc">10 questions, 10 seconds each — answer as fast as you can before the clock runs out on each one!</div>
+        <div class="mode-desc" id="classicModeDesc"></div>
         <button class="btn btn-primary" onclick="startClassic()">PLAY</button>
       </div>
       <div class="mode-card survival">
         <div class="mode-icon">🐒</div>
         <div class="mode-name">Survival</div>
-        <div class="mode-desc">Help the monkey climb the tree! Answer within 10 seconds to climb higher — get it wrong and it slips back down.</div>
+        <div class="mode-desc" id="survivalModeDesc"></div>
         <button class="btn btn-accent" onclick="startSurvival()">PLAY</button>
       </div>
       <div class="mode-card twoplayer">
